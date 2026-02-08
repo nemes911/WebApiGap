@@ -1,0 +1,39 @@
+﻿<h3>Login</h3>
+@inject Sender<Account> send
+
+<div>
+    <input @bind="user.name"
+    placeholder="name" />
+    <input @bind="user.password"
+    placeholder="password" />
+    <input @bind="user.role"
+    placeholder="role" />
+</div>
+
+
+@code {
+    private Account user = new Account();
+
+    private string ErrorMessage;
+
+    private async Task HandleLogin()
+    {
+        if(string.IsNullOrEmpty(user.name) || string.IsNullOrEmpty(user.password) || string.IsNullOrEmpty(user.role))
+        {
+            ErrorMessage = "Заполните все поля";
+            return;
+        }
+        {
+            try
+            {
+                var response = await send.SendPostAsync(user);
+            }
+            catch
+            {
+                
+            }
+        }
+    }
+
+    
+}

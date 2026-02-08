@@ -1,0 +1,6 @@
+@WebApiGap_HostAddress = http://localhost:5283
+
+GET {{WebApiGap_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
