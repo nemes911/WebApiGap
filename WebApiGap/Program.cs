@@ -5,6 +5,9 @@ using API_GAI.DbServices.DefaultCommand.Interface;
 using API_GAI.DbServices.SRC.Data.Auth;
 using API_GAI.DbServices.SRC.Models;
 using API_GAI.Settings;
+using WebApiGap.DbServices.DefaultCommand.Implements;
+using WebApiGap.DbServices.DefaultCommand.Interface;
+using WebApiGap.DbServices.PostgresFactory;
 using WebApiGap.Settings.Audinthification;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +22,10 @@ builder.Services.AddReverseProxy()
 */
 builder.Services.AddSingleton<PostgresContext>();
 
+builder.Services.AddScoped<PostgresContextFactory>();
+
+builder.Services.AddScoped<IUser, User>();
+
 builder.Services.Configure<AppiSettings>(builder.Configuration.GetSection("AppiSettings"));
 
 builder.Services.AddScoped(typeof(IDefaultDB<>), typeof(DefaultDb<>));
@@ -26,6 +33,8 @@ builder.Services.AddScoped(typeof(IDefaultDB<>), typeof(DefaultDb<>));
 builder.Services.AddSingleton<Authzorization>();
 
 /* builder.Services.AddSingleton<Session>(); раскоментить и доделать сессию  */
+
+
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

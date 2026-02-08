@@ -1,6 +1,7 @@
 ﻿using API_GAI.DbServices.DefaultCommand.Interface;
 using API_GAI.DbServices.SRC.Models;
 using Microsoft.EntityFrameworkCore;
+using WebApiGap.DbServices.PostgresFactory;
 
 namespace API_GAI.DbServices.DefaultCommand.Implements
 {
@@ -10,10 +11,10 @@ namespace API_GAI.DbServices.DefaultCommand.Implements
 
         private readonly DbSet<Tentity> _dbSet;
 
-        public DefaultDb(PostgresContext context)
+        public DefaultDb(PostgresContextFactory factory)
         {
-            _postgresContext = context;
-            _dbSet = context.Set<Tentity>();
+            _postgresContext = factory.Create();
+            _dbSet = _postgresContext.Set<Tentity>();
         }
         public async Task<Tentity> AddAsync(Tentity t)
         {
