@@ -40,6 +40,8 @@ namespace API_GAI.Controllers
             }
             return Ok(role);
 
+
+
             /*
                 var role = await _authzorization.AuthAsync(user.name, user.password);
 
