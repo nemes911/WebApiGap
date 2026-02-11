@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using WebApiGap.Session.ServiceSession;
 
 namespace API_GAI.DbServices.SRC.Models;
 

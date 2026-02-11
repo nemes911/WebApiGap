@@ -3,6 +3,7 @@ using API_GAI.Settings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using WebApiGap.DbServices.DefaultCommand.Interface;
+using WebApiGap.Session.Service;
 
 namespace WebApiGap.DbServices.PostgresFactory
 {
@@ -11,17 +12,22 @@ namespace WebApiGap.DbServices.PostgresFactory
         private readonly AppiSettings _settings;
 
         private readonly IUser _user;
-
         public PostgresContextFactory(
             IOptions<AppiSettings> options,
-            IUser user)
+             IUser user)
         {
             _settings = options.Value;
             _user = user;
+           
         }
 
         public PostgresContext Create()
         {
+            if(string.IsNullOrEmpty(_user.name) || string.IsNullOrEmpty(_user.password))
+            {
+                throw new UnauthorizedAccessException("user is not succses");
+            }
+
             var connString =
                 $"{_settings.PostgresBase};Username={_user.name};Password={_user.password}";
 

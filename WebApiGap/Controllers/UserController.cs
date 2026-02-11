@@ -40,7 +40,7 @@ namespace API_GAI.Controllers
                 return Unauthorized();
             }
 
-            var session_ID = _store.Create(name);
+            var session_ID = _store.Create(name, password);
 
             return Ok(new
             {
