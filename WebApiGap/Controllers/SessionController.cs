@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using WebApiGap.Settings.Audinthification;
 
 
 namespace WebApiGap.Controllers
@@ -13,17 +12,11 @@ namespace WebApiGap.Controllers
     {
 
 
-        [HttpPost("Check-Session")]
-        public async Task<IActionResult> Check([FromBody] Users user)
-        {
-            if(user.session == null)
-            {
-                return RedirectToRoute("http://localhost7011/test-auth/");
-            }
-            else
-            {
-                return Ok(user);
-            }
-        }
+       // [HttpPost("Check-Session")]
+       // public async Task<IActionResult> Check([FromBody] Users user)
+        //{
+        //    
+       // }
+         
     }
 }

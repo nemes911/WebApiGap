@@ -3,9 +3,12 @@ using API_GAI.DbServices.SRC.Models;
 using API_GAI.Settings;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Session;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualBasic;
-using WebApiGap.Settings.Audinthification;
+using WebApiGap.DbServices.DefaultCommand.Interface;
+using WebApiGap.DbServices.PostgresFactory;
+using WebApiGap.Session.Service;
 
 namespace API_GAI.Controllers
 {
@@ -16,42 +19,35 @@ namespace API_GAI.Controllers
         private readonly string _connection_string;
         private readonly Authzorization _authzorization;
         private readonly IConfiguration _configuration;
+        private readonly IUser _user;
+        private readonly ISessionStorenterface _store;
 
-        public UserController(IOptions<AppiSettings> options, Authzorization authzorization, IConfiguration configuration) 
+
+        public UserController(Authzorization auth, IUser user, ISessionStorenterface stroe )
         {
-            var setting = options.Value;
-
-            _connection_string = setting.AppConnection;
-
-            _authzorization = authzorization;
-
-            _configuration = configuration;
+            _authzorization = auth;
+            _user = user;
+            _store = stroe;
         }
 
         [HttpPost("test-auth")]
-        public async Task<IActionResult> TestConnetion(string name, string passord) 
+        public async Task<IActionResult> TestConnetion(string name, string password) 
         {
-
-            string role = await _authzorization.AuthAsync(name, passord);
+            var role = await _authzorization.AuthAsync(name, password);
 
             if (string.IsNullOrEmpty(role))
             {
                 return Unauthorized();
             }
-            return Ok(role);
 
+            var session_ID = _store.Create(name);
 
+            return Ok(new
+            {
+                role,
+                session_ID
+            });
 
-            /*
-                var role = await _authzorization.AuthAsync(user.name, user.password);
-
-                if (role == null)
-                {
-                    return Unauthorized("dsfdgf");
-                }
-
-               return Ok(role);
-            */
         }
     }
 }

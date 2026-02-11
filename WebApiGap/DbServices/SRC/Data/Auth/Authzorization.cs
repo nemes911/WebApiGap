@@ -3,6 +3,7 @@ using API_GAI.Settings;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
+using WebApiGap.DbServices.DefaultCommand.Interface;
 
 namespace API_GAI.DbServices.SRC.Data.Auth
 {
@@ -14,23 +15,25 @@ namespace API_GAI.DbServices.SRC.Data.Auth
         {
             var setting = options.Value;
 
-            _connection_string = setting.AppUserConnection;
+            _connection_string = setting.PostgresBase;
         }
         //установка роли 
         //public async Task<string?> Setrole(Users user)
         //{
           //  
         //}
-
+       
 
 
 
         //вход 
         public async Task<string?> AuthAsync(string name, string password)
         {
-            await using (var connection = new NpgsqlConnection(_connection_string))
+            var _connection = _connection_string + "Username=" + name + ";Password=" + password + ";";
+
+            await using (var connection = new NpgsqlConnection(_connection))
             {
-                await connection.OpenAsync();
+                     await connection.OpenAsync();
 
 
                 const string sql = "SELECT authenticated, role_name FROM gai.check_user(@p_username, @p_password)";

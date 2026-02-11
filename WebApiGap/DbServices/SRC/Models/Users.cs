@@ -1,5 +1,4 @@
 ﻿using Microsoft.Win32;
-using WebApiGap.Settings.Audinthification;
 
 namespace API_GAI.DbServices.SRC.Models
 {
@@ -11,7 +10,6 @@ namespace API_GAI.DbServices.SRC.Models
         public bool is_conect { get; set; }
         public string? role { get; private set; }
 
-        public Session? session { get; set; }
 
         //POST request for login
         public Users(string name, string password) 
@@ -27,13 +25,12 @@ namespace API_GAI.DbServices.SRC.Models
             this.role = role;
         }
 
-        public Users(string name, string password, string role, bool is_conect, Session session)
+        public Users(string name, string password, string role, bool is_conect)
         {
             this.name=name;
             this.password = password;
             this.role = role;
             this.is_conect =is_conect;
-            this.session = session;
         }
 
         public Users() { }
