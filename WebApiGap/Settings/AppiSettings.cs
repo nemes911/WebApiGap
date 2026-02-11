@@ -9,6 +9,6 @@ namespace API_GAI.Settings
 
         public string AppUserConnection { get; set; } = "Host=localhost;Port=5432;Database=postgres;Username=app_user;Password=1234";
 
-        public string PostgresBase { get; set; } = "Host=localhost;Port=5432;Database=postgres";
+        public string PostgresBase { get; set; } = "Host=localhost;Port=5432;Database=postgres;";
     }
 }

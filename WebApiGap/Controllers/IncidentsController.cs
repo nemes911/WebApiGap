@@ -12,7 +12,7 @@ namespace API_GAI.Controllers
     {
         private readonly DefaultDb<Incident> _Repo;
 
-        public IncidentsController(DefaultDb<Incident> repo, PostgresContext context)
+        public IncidentsController(DefaultDb<Incident> repo)
         {
             _Repo = repo;
         }
