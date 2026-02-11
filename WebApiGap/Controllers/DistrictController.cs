@@ -12,12 +12,12 @@ namespace WebApiGap.Controllers
     {
         private readonly IDefaultDB<District> _Repo;
 
-        public DistrictController(DefaultDb<District> Repo)
+        public DistrictController(IDefaultDB<District> Repo)
         {
             _Repo = Repo;
         }
 
-        [HttpPost]
+        [HttpPost("set-district")]
         public async Task<IActionResult> AddAsync([FromBody] District district)
         {
             if(!ModelState.IsValid) return BadRequest(ModelState);

@@ -6,30 +6,33 @@ namespace WebApiGap.Session.ServiceSession
 {
     public class InMemoryStore : ISessionStorenterface
     {
-        private readonly ConcurrentDictionary<string, Session> _sessions = new();
+        private readonly ConcurrentDictionary<string, (string user, string pass)> _sessions =
+            new ConcurrentDictionary<string, (string user, string pass)>();
 
-        public string Create(string username)
+        public string Create(string username, string password)
         {
-            var session = new Session
-            {
-                Id_Session = Guid.NewGuid().ToString(),
-                name = username,
-                CreatedAt = DateTime.UtcNow,
-                IsAuthenticated = true
-            };
+            string id = Guid.NewGuid().ToString();
+            _sessions.TryAdd(id, (user: username, pass: password));
 
-            _sessions[session.Id_Session] = session;
-
-            return session.Id_Session;
+            return id;
         }
-
         public string GetUser(string sessionId)
         {
-            return _sessions.TryGetValue(sessionId, out var session) && session.IsAuthenticated
-                ? session.name
-                : null;
+            //return _sessions.TryGetValue(sessionId, out var session) && session.IsAuthenticated
+            // ? session.name
+            // : null;
+
+            return _sessions.TryGetValue(sessionId, out var session) ? session.user : null;
         }
 
+        public string GetPassword(string sessionId)
+        {
+            //return _sessions.TryGetValue(sessionId, out var session) && session.IsAuthenticated
+            // ? session.password
+            // : null;
+
+            return _sessions.TryGetValue(sessionId, out var session) ? session.pass : null;
+        }
 
         public void Remove(string session_id) => _sessions.TryRemove(session_id, out _);
     }

@@ -8,6 +8,7 @@ namespace WebApiGap.Session.Service
 
         string name { get; set; }
 
+        string password { get; set; }
         DateTime CreatedAt { get; set; }
 
         bool IsAuthenticated { get; set; } 
