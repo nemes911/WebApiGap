@@ -21,10 +21,12 @@ namespace BlazorApp1.Http.Implements
         {
             var client = _factory.CreateClient("BlazorClient");
 
-            var request = new HttpRequestMessage(HttpMethod.Post, "api/login");
+            var request = new HttpRequestMessage(HttpMethod.Post, "api/User/test-auth");
 
             var json = JsonSerializer.Serialize(entity);
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            Console.WriteLine($"{request.Content}");
 
             return await client.SendAsync(request);
         }
@@ -41,7 +43,7 @@ namespace BlazorApp1.Http.Implements
             var json = JsonSerializer.Serialize(entity);
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var sessionId = _key.GetSession().ToString();
+            var sessionId = _key.GetSessionId().ToString();
 
             if (!string.IsNullOrEmpty(sessionId))
             {

@@ -1,8 +1,10 @@
 ﻿@page "/login"
-
+@using System.ComponentModel.DataAnnotations
+@layout Nullable
 @inject ISender<User> sender
 @inject SessionService session
 @inject NavigationManager nav
+@inject Key _key
 
 <h3>Login</h3>
 
@@ -35,10 +37,18 @@
             password = loginModel.Password
         };
 
+        Console.WriteLine($"{user.name} + {user.password}");
+
         var response = await sender.SendBaseAsync(user);
 
         if (!response.IsSuccessStatusCode)
+        {
+            var errorcontent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Error{ response.StatusCode} - {errorcontent}");
             return;
+        }
+
+
 
         var json = await response.Content.ReadAsStringAsync();
 
@@ -51,16 +61,20 @@
         if (result == null)
             return;
 
-        // сохраняем в SessionState
-        session.Set(result.SessionId, user.name, result.Role);
 
-        // редирект
+        session.Set(result.Session_Id, user.name, result.Role);
+
+        _key.SetSession(session);
+
         nav.NavigateTo("/map");
     }
 
     public class LoginModel
     {
+        [Required]
         public string? Name { get; set; }
+        
+        [Required]
         public string? Password { get; set; }
     }
 }

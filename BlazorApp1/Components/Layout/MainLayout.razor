@@ -1,23 +1,49 @@
 ﻿@inherits LayoutComponentBase
 @inject SessionService session
 
-<div class="page">
+<div class="main-layout">
 
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+    <!-- верхняя панель-->
+    <header class="topbar border-bottom bg-light">
 
-    <main>
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
+        <div class="d-flex justify-content-center align-items-center h-100 gap-4">
 
+            <a href="/">
+                <img src="/Icons/документы.png" class="nav-icon"/>
+            </a>
+
+           <a href="/">
+                <img src="/Icons/Завяки.png" class="nav-icon"/>
+            </a>
+
+            <a href="/">
+                <img src="/Icons/отчеты.png" class="nav-icon"/>
+            </a>
+
+            <a href="/">
+                <img src="/Icons/шаблоны.png" class="nav-icon"/>
+            </a>
 </div>
 
-@if (session.IsAuthenticated)
+    </header>
+
+    <!-- Content-->
+
+    <main class="content">
+        @Body
+    </main>
+
+    <!--Нижняя панель-->
+    <footer class="bottombar border-top bg-light">
+        <div class="ps-3">
+            @if (session.IsAuthenticated)
 {
     <div class="global-footer">
         @session.name (@session.role)
     </div>
 }
+        </div>
+    </footer>
+</div>
+
+

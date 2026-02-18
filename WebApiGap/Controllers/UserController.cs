@@ -31,16 +31,19 @@ namespace API_GAI.Controllers
         }
 
         [HttpPost("test-auth")]
-        public async Task<IActionResult> TestConnetion(string name, string password) 
+        public async Task<IActionResult> TestConnetion([FromBody] Users user) 
         {
-            var role = await _authzorization.AuthAsync(name, password);
+            Console.WriteLine(user.name, user.password);
+
+            var role = await _authzorization.AuthAsync(user.name, user.password);
+
 
             if (string.IsNullOrEmpty(role))
             {
                 return Unauthorized();
             }
 
-            var session_ID = _store.Create(name, password);
+            var session_ID = _store.Create(user.name, user.password);
 
             return Ok(new
             {

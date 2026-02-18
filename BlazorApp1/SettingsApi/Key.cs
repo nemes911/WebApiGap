@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Specialized;
+using BlazorApp1.Http.Service;
 
 namespace BlazorApp1.SettingsApi
 {
@@ -13,23 +14,37 @@ namespace BlazorApp1.SettingsApi
             this.chache = chache;
         }
 
-        public async  void SetSession(string id)
+        public async  Task SetSession(SessionService session)
         {
-            chache.Set("Session_id", id, new MemoryCacheEntryOptions()
+            chache.Set<SessionService>("Session", session, new MemoryCacheEntryOptions()
                 .SetAbsoluteExpiration(TimeSpan.FromHours(8)));
 
         }
 
-        public async Task<string?> GetSession()
+        public virtual async Task<string?> GetSession()
         {
-            var result = chache.TryGetValue("Session_id", out string? key);
+            var result = chache.TryGetValue("Session", out SessionService? key);
 
-            if(key != null)
+            if(key.id != null && key.name != null && key.role != null)
             {
-                return key;
+                return key.role + key.name;
             }
             return null;
+
+
            
         }
+
+        public  async Task<string?> GetSessionId()
+        {
+            var result = chache.TryGetValue("Session", out SessionService? key);
+
+            if(key.id != null)
+            {
+                return key.id;
+            }
+            return null;
+        } 
+        
     }
 }
