@@ -31,6 +31,8 @@ namespace API_GAI.DbServices.SRC.Data.Auth
         {
             var _connection = _connection_string + "Username=" + name + ";Password=" + password + ";";
 
+            Console.WriteLine(_connection);
+
             await using (var connection = new NpgsqlConnection(_connection))
             {
                      await connection.OpenAsync();

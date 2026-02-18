@@ -1,49 +1,33 @@
 ﻿@page "/map"
+@using BlazorApp1.Components.Layout
+@layout MainLayout
+@inject Key _Key
 
-@inject SessionService session
+<h3>Map page</h3>
 
-
-<div class="header">
-    RMS System — Personal Search
-</div>
-
-<div class="container"/>
-
-<div class="search-box"/>
-
-<h3>Person Search</h3>
-
-<div class="form-row">
-<label>Last Name</label>
-<input id="lastName">
-</div>
-
-<div class="form-row">
-<label>First Name</label>
-<input id="firstName">
-</div>
-
-<div class="form-row">
-<label>Date of Birth</label>
-<input type="date" id="dob">
-</div>
-
-
-<h3>Map</h3>
-
-@if (session.IsAuthenticated)
+@if (string.IsNullOrEmpty(user))
 {
-    <div class="global-footer">
-        User: @session.name
-        <br />
-        Role: @session.role
-        <br />
-        Session: @session.id
-    </div>
+    <p>Загрузка...</p>
 }
 else
 {
-    <div>
-        Not authenticated
-    </div>
+    <p>Пользователь: @user</p>
+}
+
+@code {
+
+    private string user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var session = await _Key.GetSessionId();
+
+        if (string.IsNullOrEmpty(session))
+        {
+            user = "Не авторизован";
+            return;
+        }
+
+        user = await _Key.GetSession();
+    }
 }
