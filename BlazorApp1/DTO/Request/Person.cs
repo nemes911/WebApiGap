@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace API_GAI.DbServices.SRC.Models;
+namespace BlazorApp1.DTO.Request;
+
 
 public partial class Person
 {

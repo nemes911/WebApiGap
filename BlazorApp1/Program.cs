@@ -1,4 +1,6 @@
 using BlazorApp1.Components;
+using BlazorApp1.Data.Dinamic.Datamodel;
+using BlazorApp1.Data.Dinamic.Service;
 using BlazorApp1.Http.Implements;
 using BlazorApp1.Http.Service;
 using BlazorApp1.SettingsApi;
@@ -39,6 +41,11 @@ builder.Services.AddHttpClient("BlazorClient", c =>
     return handler;
 } );
 
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddSingleton<DocumentService>();
+
+builder.Services.AddScoped<ICookie, cookieService>();
 
 builder.Services.AddScoped<SessionService>();
 

@@ -1,0 +1,31 @@
+﻿@page "/templates"
+@inject NavigationManager nav
+
+<ol>
+    <li>
+        <a href="#" @onclick="@(() =>{
+        GoToTemplate("accident");
+        
+})" >
+            <p> Документ о ДТП</p>
+        </a>
+    </li>
+    <li>
+        <a href="#" @onclick="@(() =>{
+        GoToTemplate("Prava");
+       
+})">
+            <p>Документ о лишении прав</p>
+        </a>
+
+    </li>
+</ol>
+
+
+
+@code {
+    void GoToTemplate(string type)
+    {
+        nav.NavigateTo($"/filing?template={type}");
+    }
+}

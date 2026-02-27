@@ -7,6 +7,7 @@ using API_GAI.DbServices.SRC.Models;
 using API_GAI.Settings;
 using WebApiGap.DbServices.DefaultCommand.Implements;
 using WebApiGap.DbServices.DefaultCommand.Interface;
+using WebApiGap.DbServices.Join.Inner;
 using WebApiGap.DbServices.PostgresFactory;
 using WebApiGap.Session.Service;
 using WebApiGap.Session.ServiceSession;
@@ -34,7 +35,7 @@ builder.Services.AddSingleton<Authzorization>();
 
 builder.Services.AddSingleton<ISessionStorenterface, InMemoryStore>();
 
-
+builder.Services.AddScoped<JDb>();
 
 /* builder.Services.AddSingleton<Session>(); раскоментить и доделать сессию  */
 

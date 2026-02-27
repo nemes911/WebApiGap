@@ -1,5 +1,8 @@
-﻿@inherits LayoutComponentBase
+﻿@using Microsoft.AspNetCore.Components
+@inherits LayoutComponentBase
 @inject SessionService session
+@inject NavigationManager nav 
+@using System.ComponentModel.DataAnnotations
 
 <div class="main-layout">
 
@@ -8,42 +11,46 @@
 
         <div class="d-flex justify-content-center align-items-center h-100 gap-4">
 
-            <a href="/">
-                <img src="/Icons/документы.png" class="nav-icon"/>
+            <a href="#" onclick="@(() => nav.NavigateTo("/document"))">
+                <img src="/Icons/документы.png" class="nav-icon" />
             </a>
 
-           <a href="/">
-                <img src="/Icons/Завяки.png" class="nav-icon"/>
+            <a href="#" onclick="@(() => nav.NavigateTo("/applications"))">
+                <img src="/Icons/Завяки.png" class="nav-icon" />  
             </a>
 
-            <a href="/">
-                <img src="/Icons/отчеты.png" class="nav-icon"/>
+            <a href="#" onclick="@(() => nav.NavigateTo("/reports"))">
+                <img src="/Icons/отчеты.png" class="nav-icon" />
             </a>
 
-            <a href="/">
-                <img src="/Icons/шаблоны.png" class="nav-icon"/>
+            <a href="#" onclick="@(() => nav.NavigateTo("/templates"))">
+                <img src="/Icons/шаблоны.png" class="nav-icon" />
             </a>
-</div>
+
+        </div>
 
     </header>
 
-    <!-- Content-->
-
+    <!-- Content -->
     <main class="content">
         @Body
     </main>
 
-    <!--Нижняя панель-->
+    <!-- Нижняя панель-->
     <footer class="bottombar border-top bg-light">
         <div class="ps-3">
             @if (session.IsAuthenticated)
-{
-    <div class="global-footer">
-        @session.name (@session.role)
-    </div>
-}
+            {
+                <div class="global-footer">
+                    @session.name (@session.role)
+                </div>
+            }
         </div>
     </footer>
+
 </div>
 
+@code {
 
+   
+}

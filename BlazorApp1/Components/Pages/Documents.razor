@@ -1,0 +1,29 @@
+﻿@page "/documents"
+
+@inject NavigationManager nav
+
+<ol>
+    <li>
+        <a herf ="#" onclick="@(() => nav.NavigateTo("/page"))">
+            <p> Документ о ДТП</p>
+        </a>
+    </li>
+    <li>
+        <a herf ="#" onclick="@(() => nav.NavigateTo("/page"))">
+            <p>Документ о лишении прав</p>    
+        </a>
+
+    </li>
+</ol>
+
+
+
+@code {
+    private void DTP()
+    {
+        using(DocX doc = DocX.Create("dtp.docx"))
+        {
+            
+        }
+    }
+}

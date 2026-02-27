@@ -179,9 +179,9 @@ public partial class PostgresContext : DbContext
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
                 .HasColumnName("id");
-            entity.Property(e => e.CarBrand)
+            /*entity.Property(e => e.CarBrand)
                 .HasMaxLength(255)
-                .HasColumnName("car_brand");
+                .HasColumnName("car_brand");*/
             entity.Property(e => e.FirstName)
                 .HasMaxLength(50)
                 .HasColumnName("first_name");
@@ -291,6 +291,18 @@ public partial class PostgresContext : DbContext
             entity.Property(e => e.Color)
                 .HasMaxLength(255)
                 .HasColumnName("color");
+            entity.Property(e => e.CarBrand)
+                .ValueGeneratedNever()
+                .HasMaxLength(255)
+                .HasColumnName("car_brand");
+            entity.Property(e => e.Insurance_company)
+                .ValueGeneratedNever()
+                .HasMaxLength(35)
+                .HasColumnName("insurance_company");
+            entity.Property(e => e.Vin)
+                .ValueGeneratedNever()
+                .HasMaxLength(17)
+                .HasColumnName("vin");
             entity.Property(e => e.OwnerId).HasColumnName("owner_id");
             entity.Property(e => e.SerialNumber).HasColumnName("serial_number");
 

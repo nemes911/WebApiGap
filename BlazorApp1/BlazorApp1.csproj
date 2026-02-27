@@ -7,7 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="DTO\Response\" />
     <Folder Include="wwwroot\Icons\" />
+    <Folder Include="wwwroot\js\" />
+    <Folder Include="wwwroot\TemplDoc\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Xceed.Words.NET" Version="5.2.25608.6677" />
   </ItemGroup>
 
 </Project>

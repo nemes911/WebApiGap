@@ -16,6 +16,8 @@ namespace API_GAI.DbServices.DefaultCommand.Implements
             _postgresContext = factory.Create();
             _dbSet = _postgresContext.Set<Tentity>();
         }
+
+        public DefaultDb() { }
         public async Task<Tentity> AddAsync(Tentity t)
         {
             await _dbSet.AddAsync(t);

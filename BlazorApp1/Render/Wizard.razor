@@ -1,0 +1,106 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using BlazorApp1.DTO.Request
+@using BlazorApp1.Data.Default
+@using BlazorApp1.Http.Service
+@inject ISender<Vehicle> sender
+@using Microsoft.AspNetCore.Components.Forms
+
+<div>
+    <ul class="nav nav-pills nav-justified">
+        <li class="nav-item">
+            <a class="nav-link @(currentStep == 1 ? "active" : "")">
+                Шаг 1 — Транспорт
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(currentStep == 2 ? "active" : "")">
+                Шаг 2 — Инцидент
+            </a>
+        </li>
+    </ul>
+
+    <div class="mt-4">
+
+        @if (currentStep == 1)
+        {
+            <EditForm Model="vehicle" OnValidSubmit="SelectVehicle">
+                <div class="mb-3">
+                    <label>Гос. номер</label>
+                    <InputNumber class="form-control" @bind-value="vehicle.SerialNumber" />
+                </div>
+
+                <div class="mb-3">
+                    <label>VIN</label>
+                    <InputText class="form-control" @bind-value="vehicle.Vin" />
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Найти автомобиль
+                </button>
+            </EditForm>
+        }
+
+        @if (currentStep == 2)
+        {
+            <p>Шаг 2 пока не реализован</p>
+        }
+
+    </div>
+</div>
+
+<div class="mt-4">
+    <button class="btn btn-secondary"
+            @onclick="PrevStep"
+            disabled="@(currentStep == 1)">
+        Назад
+    </button>
+
+    <button class="btn btn-primary"
+            @onclick="NextStep"
+            disabled="@(currentStep == 1 && vehicle.Id == Guid.Empty)">
+        Далее
+    </button>
+</div>
+
+@code {
+
+    private int currentStep = 1;
+
+    private Person person = new(); // пока не используем
+    private Person personB = new(); // оставляем, но не используем
+
+    private Vehicle vehicle = new();
+
+    private IncidentVehicle incidentvehicle = new();
+
+    private async Task SelectVehicle()
+    {
+        var response = await sender.SendAsync(
+            vehicle,
+            "https://localhost7011/vehicle",
+            HttpMethod.Post);
+
+        if (!response.IsSuccessStatusCode)
+            return;
+
+        var result = await response.Content.ReadFromJsonAsync<Vehicle>();
+
+        if (result is null)
+            return;
+
+        vehicle.Id = result.Id;
+        person.Id = result.OwnerId; // связываем владельца
+    }
+
+    private void NextStep()
+    {
+        if (currentStep == 1 && vehicle.Id != Guid.Empty)
+            currentStep = 2;
+    }
+
+    private void PrevStep()
+    {
+        if (currentStep > 1)
+            currentStep--;
+    }
+}

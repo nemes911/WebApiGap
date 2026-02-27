@@ -1,0 +1,134 @@
+﻿@page "/filing"
+@using Microsoft.AspNetCore.Components.Forms
+@inject DocumentService docService
+@inject NavigationManager nav
+
+<h3>Документ: @document.DocumentType</h3>
+
+<ul class="nav nav-pills nav-justified mb-4">
+    <li class="nav-item">
+        <a class="nav-link @(currentStep == 1 ? "active" : "")"> 
+            Шаг 1
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(currentStep == 2 ? "active" : "")">
+            Шаг 2 подтверждение
+        </a>
+    </li>
+</ul>
+
+@if (currentStep == 1)
+{
+    <EditForm Model="document">
+        @foreach(var field in document.field)
+        {
+            <div class="mb-3">
+                <label>@field.Label</label>
+
+                @switch (field.Type)
+                {
+                    case "text":
+                        <InputText class="form-control"
+                            @bind-Value="field.StringValue" />
+                            break;
+                    case "date":
+                        <InputDate class="form-control"
+                            @bind-Value="field.DateValue" />
+                            break;
+                    case "number":
+                        <InputNumber class="form-control"
+                            @bind-Value="field.NumberValue" />
+                            break;
+                    
+                }
+            </div>
+        }
+
+    </EditForm>
+}
+
+@if (currentStep == 2)
+{
+    <div class="card p-4">
+        <h5>Проверка поменять</h5>
+        @foreach(var field in document.field)
+        {
+            <p><b>@field.Label:</b>@field.StringValue</p>
+        }
+    </div>
+}
+<div class="mt-4 d-flex justify-content-between">
+    <button class="btn btn-secondary"
+        @onclick="PrevStep"
+        disabled="@(currentStep == 1)">
+        назад
+    </button>
+    @if(currentStep == 1)
+    {
+        <button class="btn btn-primary"
+            @onclick="NextStep">
+            Далее
+        </button>
+    }
+    else
+    {
+        <button class="btn btn-success"
+            @onclick="Save">
+            Отправить
+        </button>
+    }
+</div>
+
+
+
+
+@code{
+    BlazorApp1.Data.Default.Documents document = new();
+
+    private int currentStep = 1;
+
+    [SupplyParameterFromQuery]
+    public string? template { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (!string.IsNullOrEmpty(template))
+        {
+            document = docService.GetDocyment(template);
+        }
+    }
+
+    void NextStep()
+    {
+        currentStep = 2;
+    }
+
+    void PrevStep()
+    {
+        if(currentStep > 1)
+        {
+            currentStep--;
+        }
+    }
+
+    void GoTemplate(string type)
+    {
+        nav.NavigateTo($"filing?template={type}");
+    }
+
+
+
+    void Save()
+    {
+        foreach(var field in document.field)
+        {
+            Console.WriteLine($"{field.Name} = {field.StringValue}");
+        }
+    }
+
+
+
+
+
+}
