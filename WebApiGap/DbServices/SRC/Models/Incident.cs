@@ -27,3 +27,4 @@ public partial class Incident
 
     public virtual PoliceStation PoliceStation { get; set; } = null!;
 }
+

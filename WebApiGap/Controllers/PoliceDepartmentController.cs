@@ -12,7 +12,7 @@ namespace WebApiGap.Controllers
     {
         private readonly IDefaultDB<PoliceDepartment> _Repo;
 
-        public PoliceDepartmentController(DefaultDb<PoliceDepartment> Repo)
+        public PoliceDepartmentController(IDefaultDB<PoliceDepartment> Repo)
         {
             _Repo = Repo;
         }

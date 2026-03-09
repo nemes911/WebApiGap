@@ -12,7 +12,7 @@ namespace WebApiGap.Controllers
     {
         private readonly IDefaultDB<Person> _Repo;
 
-        public PersonController(DefaultDb<Person> Repo)
+        public PersonController(IDefaultDB<Person> Repo)
         {
             _Repo = Repo;
         }

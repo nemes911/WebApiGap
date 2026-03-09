@@ -1,4 +1,5 @@
 ﻿using API_GAI.DbServices.DefaultCommand.Implements;
+using API_GAI.DbServices.DefaultCommand.Interface;
 using API_GAI.DbServices.SRC.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,9 +10,9 @@ namespace API_GAI.Controllers
     [ApiController]
     public class IncidentVehiclesController : ControllerBase
     {
-        private readonly DefaultDb<IncidentVehicle> _Repo;
+        private readonly IDefaultDB<IncidentVehicle> _Repo;
 
-        public IncidentVehiclesController(DefaultDb<IncidentVehicle> Repo) 
+        public IncidentVehiclesController(IDefaultDB<IncidentVehicle> Repo) 
         {
             _Repo = Repo;
         }

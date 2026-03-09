@@ -54,7 +54,25 @@
         <h5>Проверка поменять</h5>
         @foreach(var field in document.field)
         {
-            <p><b>@field.Label:</b>@field.StringValue</p>
+            <p>
+                <b>@field.Label</b>
+                @switch (field.Type)
+                {
+                    case "text":
+                        <InputText class="form-control"
+                         @bind-Value="field.StringValue"/>
+                         break;
+                    case "date":
+                        <InputDate class="form-control"
+                        @bind-Value="field.DateValue"/>
+                        break;
+                    case "number":
+                        <InputNumber class="form-control"
+                        @bind-Value="field.NumberValue"/>
+                        break;
+
+                }
+            </p>
         }
     </div>
 }

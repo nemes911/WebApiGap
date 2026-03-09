@@ -4,6 +4,8 @@ using API_GAI.DbServices.SRC.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography.Xml;
+using WebApiGap.DbServices.Join.Inner;
+using WebApiGap.DbServices.SRC.Models;
 
 namespace WebApiGap.Controllers
 {
@@ -13,9 +15,12 @@ namespace WebApiGap.Controllers
     {
         private readonly IDefaultDB<Vehicle> _Repo;
 
-        public VehicleController(DefaultDb<Vehicle> repo)
+        private readonly JDb _jDb;
+
+        public VehicleController(IDefaultDB<Vehicle> repo, JDb jDb)
         {
             _Repo = repo;
+            _jDb = jDb;
         }
 
         [HttpPost]
@@ -36,6 +41,13 @@ namespace WebApiGap.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             return Ok(await _Repo.UpdateAsync(vehicle));
+        }
+
+        [HttpGet("get-prava")]
+        public async Task<IActionResult> GetUnAccsesPrava()
+        {
+            List<JoinPrava> prav;
+            return Ok(prav = _jDb.GetOnPrava());
         }
     }
 }

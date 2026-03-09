@@ -2,8 +2,140 @@
 @using BlazorApp1.Components.Layout
 @layout MainLayout
 @inject Key _Key
+@inject Person persona
+@inject ISender<Person> senderPerson
+@inject ISender<Vehicle> senderVehicle
+@inject ISender<Incident> senderIncident
+@inject NavigationManager nav
 
 <h3>Map page</h3>
+
+<p>
+    Тип поиска:
+        <InputSelect class="form-select w-auto d-inline-block ms-2"
+            @bind-Value="currentsearch">
+            <option value="Person">person</option>
+            <option value="Vehicle">Vehicle</option>
+            <option value="Incident">Incident</option>
+        </InputSelect>
+</p>
+
+<hr />
+<EditForm  OnValidSubmit="Submit">
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+
+    @if(currentsearch == numbersearch.Person)
+    {
+        <div class="mb-3">
+            <InputText class="form-control"
+            @bind-Value="personModel.FirstName"/>
+        </div>
+        <div class="mb-3">
+            <InputText class="form-control"
+            @bind-Value="personModel.LastName"/>
+        </div>
+        <div class="mb-3">
+            <InputText class="form-control"
+            @bind-Value="personModel.MiddleName"/>
+        </div>
+        <div class="mb-3">
+            <InputNumber class="form-control"
+            @bind-Value="personModel.PassportSeries"/>
+        </div>
+        <div class="mb-3">
+            <InputNumber class="form-control"
+            @bind-Value="personModel.PassportNumber"/>
+        </div>
+        //добавить id соц статуса но через join выбор
+    }
+    @if(currentsearch == numbersearch.Vehicle)
+    {
+        <div class="mb-3">
+            <InputNumber class="form-control"
+            @bind-Value="vehicleModel.SerialNumber"/> 
+        </div>
+        //изменить в базе serialnumber на varchar
+        <div class="mb-3">
+            <InputText class="form-control"
+            @bind-Value="vehicleModel.Color"/>
+        </div>
+        <div class="mb-3">
+            <InputText class="form-control"
+            @bind-Value="vehicleModel.CarBrand"/>
+        </div>
+        <div class="mb-3">
+            <InputText class="form-control"
+            @bind-Value="vehicleModel.Insurance_company"/>
+        </div>
+        <div class="mb-3">
+            <InputText class="form-control"
+            @bind-Value="vehicleModel.Vin"/>
+        </div>
+    }
+    else
+    {
+        <div class="mb-3">
+            <InputDate class="form-control"
+            @bind-Value="incidentModel.IncidentDate"/>
+        </div>
+        <div class="mb-3">
+            <InputText class="form-control"
+            @bind-Value="incidentModel.Description"/>
+        </div>
+        <div class="mb-3">
+            <InputNumber class="form-control"
+            @bind-Value="incidentModel.RepairCost"/>
+        </div>
+        <div class="mb-3">
+            <InputDate class="form-control"
+            @bind-Value="incidentModel.Timestamp"/>
+        </div>
+        <div class="mb-3">
+            <InputText class="form-control"
+            @bind-Value="incidentModel.Location"/>
+        </div>
+        //добавить id полиц станции через join
+    }
+
+
+</EditForm>
+<hr />
+<!-- paner result-->
+@if(resultPerson != null  )
+{
+ <div class="card p-3 mt-3">
+    <h5>Результат</h5>
+        @foreach(var item in resultPerson)
+        {
+            <div class="border-bottom p-2">
+                @item
+            </div>
+        }
+    </div>                                                             
+}else if(resultVehicle != null)
+{
+    <div class="card p-3 mt-3">
+        <h5>Результат</h5>
+        @foreach(var item in resultVehicle)
+        {
+            <div class="border-bottom p-2">
+                @item
+            </div>
+        }
+    </div>
+}else if(resultIncident != null)
+{
+    <div class="card p-3 mt-3">
+        <h5>Результат</h5>
+        @foreach(var item in resultIncident)
+        {
+            <div class="border-bottom p-2">
+                @item
+            </div>
+        }
+    </div>    
+}
 
 @if (string.IsNullOrEmpty(user))
 {
@@ -15,6 +147,23 @@ else
 }
 
 @code {
+
+    private enum numbersearch
+    {
+        Person,
+        Vehicle,
+        Incident
+    }
+
+    private numbersearch currentsearch = numbersearch.Person;
+
+    private Person personModel = new();
+    private Vehicle vehicleModel = new();
+    private Incident incidentModel = new();
+
+    private List<Person> resultPerson;
+    private List<Vehicle> resultVehicle;
+    private List<Incident> resultIncident;
 
     private string user;
 
@@ -30,4 +179,95 @@ else
 
         user = await _Key.GetSession();
     }
+
+    private async Task Submit()
+    {
+        switch (currentsearch)
+        {
+            case numbersearch.Person:
+                var person = new Person
+                {
+                    FirstName = personModel.FirstName,
+                    LastName = personModel.LastName,
+                    MiddleName = personModel.MiddleName,
+                    PassportSeries = personModel.PassportSeries,
+                    PassportNumber = personModel.PassportNumber
+                };
+                var response = await senderPerson.SendAsync(person, "https://localhost7011/", HttpMethod.Post);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorcontent = await response.Content.ReadAsStringAsync();
+                    return;
+                }
+                var json = await response.Content.ReadAsStringAsync();
+
+                resultPerson = JsonSerializer.Deserialize<List<Person>>(json);
+
+                if(resultPerson == null)
+                {
+                    return;
+                }
+                break;
+
+            case numbersearch.Vehicle:
+                var vehicle = new Vehicle
+                {
+                    SerialNumber = vehicleModel.SerialNumber,
+                    Color = vehicleModel.Color,
+                    CarBrand = vehicleModel.CarBrand,
+                    Insurance_company = vehicleModel.Insurance_company,
+                    Vin = vehicleModel.Vin
+                };
+                var responsevehicle = await senderVehicle.SendAsync(vehicle, "https://localhost7011/", HttpMethod.Post);
+                if (!responsevehicle.IsSuccessStatusCode)
+                {
+                    var errorcontent = await responsevehicle.Content.ReadAsStringAsync();
+                    return;
+                }
+                var jsonvehicle = await responsevehicle.Content.ReadAsStringAsync();
+
+                resultVehicle = JsonSerializer.Deserialize<List<Vehicle>>(jsonvehicle);
+
+                if(resultVehicle == null)
+                {
+                    return;
+                }
+                break;
+
+            case numbersearch.Incident:
+                var incident = new Incident
+                {
+                    IncidentDate = incidentModel.IncidentDate,
+                    Description = incidentModel.Description,
+                    RepairCost = incidentModel.RepairCost,
+                    Timestamp = incidentModel.Timestamp,
+                    Location = incidentModel.Location
+                };
+                var responseincident = await senderIncident.SendAsync(incident, "https://localhost7011/", HttpMethod.Post);
+                if (!responseincident.IsSuccessStatusCode)
+                {
+                    var errorcontent = await responseincident.Content.ReadAsStringAsync();
+                    return;
+                }
+                var jsonincident = await responseincident.Content.ReadAsStringAsync();
+
+                resultIncident = JsonSerializer.Deserialize<List<Incident>>(jsonincident);
+                if(resultIncident == null)
+                {
+                    return;
+                }
+
+                break;
+
+            default:
+                nav.NavigateTo("/Error");
+                break;
+        }
+
+        
+        
+        
+    }
+
+    
 }

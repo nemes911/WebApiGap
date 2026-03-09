@@ -1,4 +1,5 @@
 ﻿using API_GAI.DbServices.DefaultCommand.Implements;
+using API_GAI.DbServices.DefaultCommand.Interface;
 using API_GAI.DbServices.SRC.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,9 +11,9 @@ namespace API_GAI.Controllers
     [ApiController]
     public class OfficerController : ControllerBase
     {
-        private readonly DefaultDb<Officer> _Repo;
+        private readonly IDefaultDB<Officer> _Repo;
 
-        public OfficerController(DefaultDb<Officer> Repo) 
+        public OfficerController(IDefaultDB<Officer> Repo) 
         {
             _Repo = Repo;
         }

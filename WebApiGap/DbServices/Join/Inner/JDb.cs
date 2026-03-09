@@ -123,6 +123,125 @@ namespace WebApiGap.DbServices.Join.Inner
             }
         }
 
+        //oficer by ranks
+        public List<Officer> GetOfficerByRanks(Rank rank)
+        {
+            var constring = _context.Database.GetConnectionString();
+            using (var con = new NpgsqlConnection(constring))
+            {
+                con.Open();
+                var cmd = new NpgsqlCommand(@"select
+                o.id,
+                o.first_name,
+                o.last_name,
+                o.middle_name,
+                o.rank_id,
+                o.birth_date,
+                o.passport_number,
+                o.passport_series
+                from gai.officers o
+                inner join gai.ranks r
+                    on r.id = o.rank_id
+                where r.id = @rank_id", con);
+
+                cmd.Parameters.AddWithValue("rank_id", rank.Id);
+
+                var list = new List<Officer>();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        list.Add(new Officer
+                        {
+                            Id = reader.GetGuid(0),
+                            FirstName = reader.GetString(1),
+                            LastName = reader.GetString(2),
+                            MiddleName = reader.GetString(3),
+                            RankId = reader.GetInt32(4),
+                            BirthDate = reader.GetFieldValue<DateOnly>(5),
+                            PassportNumber = reader.GetInt32(6),
+                            PassportSeries = reader.GetInt32(7),
+                        });
+                    }
+                }
+                return list;
+            }
+        }
+
+        //всех с просроченными правами 
+        public  List<JoinPrava> GetOnPrava()
+        {
+            var constring = _context.Database.GetConnectionString();
+            var list = new List<JoinPrava>();
+            using (var conn = new NpgsqlConnection(constring))
+            {
+                conn.Open();
+
+                var cmd = new NpgsqlCommand(@"
+                select
+                p.date,
+                p.series,
+                p.number,
+                p.kod_podrazdeleniya,
+                p.type,
+                p.status,
+                per.first_name,
+                per.last_name,
+                per.middle_name,
+                per.passport_number,
+                per.passport_series,
+                per.social_status_id,
+                v.serial_number,
+                v.color,
+                v.car_brand,
+                v.insurance_company,
+                v.vin
+                from gai.prava p
+                inner join gai.people per 
+                    on per.id_prav = p.id   
+                inner join gai.vehicles v 
+                    on v.owner_id = per.id
+                ", conn);
+
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        list.Add(new JoinPrava
+                        {
+                            prava = new Prava
+                            {
+                                date = reader.GetDateTime(0),
+                                series = reader.GetString(1),
+                                number = reader.GetInt32(2),
+                                kod_podrazdeleniya = reader.GetString(3),
+                                type = reader.GetFieldValue<string[]>(4),
+                                status = reader.GetBoolean(5),
+                            },
+                            Person = new Person
+                            {
+                                FirstName = reader.GetString(6),
+                                LastName = reader.GetString(7),
+                                MiddleName = reader.GetString(8),
+                                PassportNumber = reader.GetInt32(9),
+                                PassportSeries = reader.GetInt32(10),
+                                SocialStatusId = reader.GetInt32(11),
+                            },
+                            Vehicle = new Vehicle
+                            {
+                                SerialNumber = reader.GetInt32(12),
+                                Color = reader.GetString(13),
+                                CarBrand = reader.GetString(14),
+                                Insurance_company = reader.GetString(15),
+                                Vin = reader.GetString(16)
+                            }
+                        });
+                    }
+                }
+                return list;
+            }
+        }
+
         //инценденты по районам 
         /*public Incident GetIncidentGroupDistrict(District district)
         {
