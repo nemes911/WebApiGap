@@ -488,43 +488,192 @@ namespace WebApiGap.DbServices.Join.Inner
                     {
                         list.Add(new DistrictCount
                         {
-                                
+                            DistrictId = reader.GetInt32(0),
+                            IncidentCount = reader.GetInt32(1),
+                            TotalDamage = reader.IsDBNull(2) ? 0 : reader.GetDecimal(2)
                         });
                     }
                 }
+                return list;
             }
         }
 
         /// <summary>
         /// Итоговый запрос с условием на группы
         /// </summary>
-        public List<DistricStat> GetAggregateWithGroupCondition(int minIncidents)
+        /// <param name="minIncidents"></param>
+        /// <returns></returns>
+        public List<DistrictCount> GetAggregateWithGroupCondition(int minIncidents)
         {
-            return new List<DistricStat>();
+            var constring = _context.Database.GetConnectionString();
+
+            using (var conn = new NpgsqlConnection(constring))
+            {
+                conn.Open();
+
+                var cmd = new NpgsqlCommand(@"
+                select 
+                        ps.district_id,
+                        count(i.id),
+                        sum(i.repair_cost)
+                from gai.incidents i
+                inner join gai.police_station ps on i.police_station_id = ps.id
+                group by ps.district_id
+                having count(i.id) >= @minIncidents", conn);
+
+                cmd.Parameters.AddWithValue("minIncidents", minIncidents);
+
+                var list = new List<DistrictCount>();
+
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        list.Add(new DistrictCount
+                        {
+                            DistrictId = reader.GetInt32(0),
+                            IncidentCount = reader.GetInt32(1),
+                            TotalDamage = reader.GetDecimal(2)
+                        });
+                    }
+                }
+                return list;
+            }
         }
 
         /// <summary>
         /// Итоговый запрос с условием на данные и на группы
         /// </summary>
-        public List<DistricStat> GetAggregateWithBothConditions(DateOnly from, DateOnly to, decimal minDamage)
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <param name="minDamage"></param>
+        /// <returns></returns>
+        public List<DistrictCount> GetAggregateWithBothConditions(DateOnly from, DateOnly to, decimal minDamage)
         {
-            return new List<DistricStat>();
+            var constring = _context.Database.GetConnectionString();
+            using (var conn = new NpgsqlConnection(constring))
+            {
+                conn.Open();
+
+                var cmd = new NpgsqlCommand(@"
+                select
+                        ps.district_id,
+                        count(i.id),
+                        sum(i.reapeir_cost)
+                from gai.incidents i
+                inner join gai.police_station ps on i.police_station_id = ps.id
+                where i.incident_date between @from and @to
+                group by ps.district_id 
+                having sum(i.repair_cost) >= @minDamage", conn);
+
+                cmd.Parameters.AddWithValue("from", from);
+                cmd.Parameters.AddWithValue("to", to);
+                cmd.Parameters.AddWithValue("minDamage", minDamage);
+
+                var list = new List<DistrictCount>();
+
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        list.Add(new DistrictCount
+                        {
+                            DistrictId = reader.GetInt32(0),
+                            IncidentCount = reader.GetInt32(1),
+                            TotalDamage = reader.GetDecimal(2)
+                        });
+                    }
+                }
+                return list;
+            }
         }
 
         /// <summary>
         /// Запрос на запросе по принципу итогового запроса
         /// </summary>
-        public List<DistricStat> GetSubqueryAggregate()
+        /// <returns></returns>
+        public List<DistrictCount> GetSubqueryAggregate()
         {
-            return new List<DistricStat>();
+            var constring = _context.Database.GetConnectionString();
+
+            using (var conn = new NpgsqlConnection(constring))
+            {
+                conn.Open();
+
+                var cmd = new NpgsqlCommand(@"
+                select *
+                from (
+                        select 
+                            ps.district_id,
+                            count(i.id) as incidents_count,
+                            sum(i.repair_cost) as total_damage
+                        from gai.incidents i
+                        inner join gai.police_station ps on i.police_station_id = ps.id
+                        group by ps.district_id
+                ) t
+                order by total_damage desc", conn);
+
+                var list = new List<DistrictCount>();
+
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        list.Add(new DistrictCount
+                        {
+                            DistrictId = reader.GetInt32(0),
+                            IncidentCount = reader.GetInt32(1),
+                            TotalDamage = reader.IsDBNull(2) ? 0 : reader.GetDecimal(2)
+                        });
+                    }
+                }
+                return list;
+            }
         }
 
         /// <summary>
         /// Запрос с подзапросом
         /// </summary>
+        /// <returns></returns>
         public List<Incident> GetAggregateWithSubquery()
         {
-            return new List<Incident>();
+                var constring = _context.Database.GetConnectionString();
+
+            using var conn = new NpgsqlConnection(constring);
+            conn.Open();
+
+            var cmd = new NpgsqlCommand(@"
+        select
+            id,
+            incident_class_id,
+            incident_date,
+            description,
+            repair_cost
+        from gai.incidents
+        where repair_cost >
+        (
+            select avg(repair_cost)
+            from gai.incidents
+        )
+        ", conn);
+
+            var list = new List<Incident>();
+
+            using var reader = cmd.ExecuteReader();
+
+            while (reader.Read())
+            {
+                list.Add(new Incident
+                {
+                    Id = reader.GetGuid(0),
+                    IncidentClassId = reader.GetInt32(1),
+                    IncidentDate = reader.GetFieldValue<DateOnly>(2),
+                    Description = reader.GetString(3),
+                    RepairCost = reader.GetDecimal(4)
+                });
+            }
+
+            return list;
         }
     }
 }

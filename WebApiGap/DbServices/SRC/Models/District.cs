@@ -27,3 +27,20 @@ public class DistricStat
     }
     public DistricStat() { }
 }
+
+public class DistrictCount
+{
+    public int DistrictId {  get; set; }
+
+    public int? IncidentCount {  get; set; }
+
+    public decimal? TotalDamage { get; set; }
+
+    public DistrictCount(int DistrictId, int? IncidentCount, decimal? TotalDamage)
+    {
+        this.DistrictId = DistrictId;
+        this.IncidentCount = IncidentCount;
+        this.TotalDamage = TotalDamage;
+    }
+    public DistrictCount() { }
+}
