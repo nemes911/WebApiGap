@@ -52,12 +52,79 @@ namespace API_GAI.Controllers
 
         //views
         [HttpPost("GetFullIncident")]
-
         public async Task<IActionResult> GetViewIncedent(ViewIncidents incident)
         {
             if(!ModelState.IsValid) return BadRequest(ModelState);
             List<ViewIncidents> list;
             return Ok(list = _JDb.GetIncidents(incident));
         }
+
+        /// <summary>
+        /// Симметричное внутреннее соединение с условием по датам
+        /// </summary>
+        /// <param name="dateFrom"></param>
+        /// <param name="dateTo"></param>
+        /// <returns></returns>
+        [HttpGet("IncidentsByDate")]
+        public IActionResult GetIncidentsByDate([FromQuery] DateOnly dateFrom, [FromQuery] DateOnly dateTo)
+        {
+            return Ok(_JDb.GetIncidentsByDateRange(dateFrom, dateTo));
+        }
+
+        /// <summary>
+        /// Симметричное внутреннее соединение с условием по автомобилю
+        /// </summary>
+        /// <param name="vehicleID"></param>
+        /// <returns></returns>
+        [HttpGet("IncidentsByVehicle/{vehicleid}")]
+        public IActionResult GetIncidentsByVehicle(Guid vehicleID)
+        {
+            var vehicle = new Vehicle { Id = vehicleID };
+            return Ok(_JDb.GetIncidentByVehicle(vehicle));
+        }
+
+        /// <summary>
+        /// Левое внешнее соединение
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("LeftJoinIncidentsWithOfficers")]
+        public IActionResult GetLeftJoinIncidentsWithOfficers()
+        {
+            return Ok(_JDb.GetLeftJoinIncidentsWithOfficers());
+        }
+
+        /// <summary>
+        /// Запрос на запросе по принципу левого соединения
+        /// </summary>
+        /// <param name="OfficerId"></param>
+        /// <returns></returns>
+        [HttpGet("SubqueryLeftJoinStyle/{officerId}")]
+        public IActionResult GetSubqueryLeftJoinStyle(Guid OfficerId)
+        {
+            var officer = new Officer { Id = OfficerId };
+            return Ok(_JDb.GetSubqueryLeftJoinStyle(officer));
+        }
+
+
+        [HttpGet("AggregateNoCondition")]
+        public IActionResult GetAggregateNoCondition() => Ok(_JDb.GetAggregateNoCondition());
+
+        [HttpGet("AggregateWithDataCondition")]
+        public IActionResult GetAggregateWithDataCondition([FromQuery] DateOnly dateFrom)
+            => Ok(_JDb.GetAggregateWithDataCondition(dateFrom));
+
+        [HttpGet("AggregateWithGroupCondition")]
+        public IActionResult GetAggregateWithGroupCondition([FromQuery] int minIncidents)
+            => Ok(_JDb.GetAggregateWithGroupCondition(minIncidents));
+
+        [HttpGet("AggregateWithBothConditions")]
+        public IActionResult GetAggregateWithBothConditions([FromQuery] DateOnly from, [FromQuery] DateOnly to, [FromQuery] decimal minDamage)
+            => Ok(_JDb.GetAggregateWithBothConditions(from, to, minDamage));
+
+        [HttpGet("SubqueryAggregate")]
+        public IActionResult GetSubqueryAggregate() => Ok(_JDb.GetSubqueryAggregate());
+
+        [HttpGet("AggregateWithSubquery")]
+        public IActionResult GetAggregateWithSubquery() => Ok(_JDb.GetAggregateWithSubquery());
     }
 }

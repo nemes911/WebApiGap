@@ -13,8 +13,10 @@ namespace WebApiGap.DbServices.Join.Inner
         public JDb(PostgresContextFactory factory) => _context = factory.Create();
 
         /// <summary>
-        /// 1. Симметричное внутреннее соединение с условием (по дате) — использование VIEW
+        /// Симметричное внутреннее соединение с условием (по дате) — использование VIEW
         /// </summary>
+        /// <param name="incident"></param>
+        /// <returns></returns>
         public List<ViewIncidents> GetIncidents(ViewIncidents incident)
         {
             var constring = _context.Database.GetConnectionString();
@@ -51,15 +53,17 @@ namespace WebApiGap.DbServices.Join.Inner
         }
 
         /// <summary>
-        /// 2. Симметричное внутреннее соединение с условием (по внешнему ключу — полицейский участок)
-        ///    Инцидент + классификация + полицейское отделение
+        /// Симметричное внутреннее соединение с условием (по внешнему ключу — полицейский участок)
+        ///    Инцидент + классификация + полицейское отделени
         /// </summary>
+        /// <param name="police"></param>
+        /// <returns></returns>
         public List<Incident> GetFullInfoIncident(PoliceStation police)
         {
             var constring = _context.Database.GetConnectionString();
-            using var con = new NpgsqlConnection(constring);
-            con.Open();
-            var cmd = new NpgsqlCommand(@"
+            using (var con = new NpgsqlConnection(constring)){
+                con.Open();
+                var cmd = new NpgsqlCommand(@"
                 SELECT
                     i.id, i.incident_class_id, i.incident_date, i.description,
                     i.repair_cost, i.timestamp, i.location, i.police_station_id,
@@ -70,32 +74,37 @@ namespace WebApiGap.DbServices.Join.Inner
                 INNER JOIN gai.police_station ps ON ps.id = i.police_station_id
                 WHERE ps.id = @police_station_id", con);
 
-            cmd.Parameters.AddWithValue("police_station_id", police.Id);
-            var list = new List<Incident>();
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-                list.Add(new Incident
+                cmd.Parameters.AddWithValue("police_station_id", police.Id);
+                var list = new List<Incident>();
+                using (var reader = cmd.ExecuteReader())
                 {
-                    Id = reader.GetGuid(0),
-                    IncidentClassId = reader.GetInt32(1),
-                    IncidentDate = reader.GetFieldValue<DateOnly>(2),
-                    Description = reader.GetString(3),
-                    RepairCost = reader.GetDecimal(4),
-                    Timestamp = reader.GetDateTime(5),
-                    Location = reader.GetString(6),
-                    PoliceStationId = reader.GetInt32(7),
-                    IncidentClass = new IncidentClassification { Id = reader.GetInt32(8), ClassificationName = reader.GetString(9) },
-                    PoliceStation = new PoliceStation { Id = reader.GetInt32(10), Address = reader.GetString(11) }
-                });
+                    while (reader.Read())
+                    {
+                        list.Add(new Incident
+                        {
+                            Id = reader.GetGuid(0),
+                            IncidentClassId = reader.GetInt32(1),
+                            IncidentDate = reader.GetFieldValue<DateOnly>(2),
+                            Description = reader.GetString(3),
+                            RepairCost = reader.GetDecimal(4),
+                            Timestamp = reader.GetDateTime(5),
+                            Location = reader.GetString(6),
+                            PoliceStationId = reader.GetInt32(7),
+                            IncidentClass = new IncidentClassification { Id = reader.GetInt32(8), ClassificationName = reader.GetString(9) },
+                            PoliceStation = new PoliceStation { Id = reader.GetInt32(10), Address = reader.GetString(11) }
+                        });
+                    }
+                }
+                return list;
             }
-            return list;
         }
 
         /// <summary>
-        /// 3. Симметричное внутреннее соединение с условием (по внешнему ключу — звание)
+        /// Симметричное внутреннее соединение с условием (по внешнему ключу — звание)
         ///    oficer by ranks
         /// </summary>
+        /// <param name="rank"></param>
+        /// <returns></returns>
         public List<Officer> GetOfficerByRanks(Rank rank)
         {
             var constring = _context.Database.GetConnectionString();
@@ -133,8 +142,9 @@ namespace WebApiGap.DbServices.Join.Inner
         }
 
         /// <summary>
-        /// 4. Симметричное внутреннее соединение без условия — всех с просроченными правами
+        /// Симметричное внутреннее соединение без условия — всех с просроченными правами
         /// </summary>
+        /// <returns></returns>
         public List<JoinPrava> GetOnPrava()
         {
             var constring = _context.Database.GetConnectionString();
@@ -195,6 +205,8 @@ namespace WebApiGap.DbServices.Join.Inner
         /// <summary>
         /// Симметричное внутреннее соединение с условием (два запроса с условием отбора по внешнему ключу) — по офицеру
         /// </summary>
+        /// <param name="officer"></param>
+        /// <returns></returns>
         public List<IncidentOfficerDto> GetIncidentsByOfficer(Officer officer)
         {
             var constring = _context.Database.GetConnectionString();
@@ -234,6 +246,8 @@ namespace WebApiGap.DbServices.Join.Inner
         /// <summary>
         /// Симметричное внутреннее соединение с условием (два запроса с условием отбора по внешнему ключу) — по автомобилю
         /// </summary>
+        /// <param name="vehicle"></param>
+        /// <returns></returns>
         public List<JoinPrava> GetIncidentByVehicle(Vehicle vehicle)
         {
             var constring = _context.Database.GetConnectionString();
@@ -296,6 +310,9 @@ namespace WebApiGap.DbServices.Join.Inner
         /// <summary>
         /// Симметричное внутреннее соединение с условием (два запроса с условием отбора по датам) — первый
         /// </summary>
+        /// <param name="dateFrom"></param>
+        /// <param name="dateTo"></param>
+        /// <returns></returns>
         public List<ViewIncidents> GetIncidentsByDateRange(DateOnly dateFrom, DateOnly dateTo)
         {
             var constring = _context.Database.GetConnectionString();
@@ -334,6 +351,7 @@ namespace WebApiGap.DbServices.Join.Inner
         /// <summary>
         /// Симметричное внутреннее соединение без условия (три запроса) — все офицеры + станция + ранг
         /// </summary>
+        /// <returns></returns>
         public List<Officer> GetAllOfficerWithStationsAndRanks()
         {
             var constring = _context.Database.GetConnectionString();
@@ -361,15 +379,16 @@ namespace WebApiGap.DbServices.Join.Inner
                     BirthDate = reader.GetFieldValue<DateOnly>(5),
                     PassportNumber = reader.GetInt32(6),
                     PassportSeries = reader.GetInt32(7),
-                    // PoliceStation и Rank можно добавить в модель при необходимости
+                    
                 });
             }
             return list;
         }
 
         /// <summary>
-        /// Симметричное внутреннее соединение без условия (три запроса) — все инциденты + классификация + ТС
+        ///  Симметричное внутреннее соединение без условия (три запроса) — все инциденты + классификация + ТС
         /// </summary>
+        /// <returns></returns>
         public List<Incident> GetAllIncidentsWithClassificationAndVehicle()
         {
             var constring = _context.Database.GetConnectionString();
@@ -404,19 +423,7 @@ namespace WebApiGap.DbServices.Join.Inner
         // Остальные запросы из задания (левые, правые, итоговые и т.д.)
         // =====================================================================
 
-      
-        /// <summary>
-        /// Правое внешнее соединение
-        /// </summary>
-        public List<Officer> GetRightJoinOfficersWithIncidents()
-        {
-            // Реализация по твоему стилю
-            return new List<Officer>();
-        }
-
-        
-        
-
+     
         /// <summary>
         /// Итоговый запрос без условия
         /// </summary>
@@ -559,7 +566,7 @@ namespace WebApiGap.DbServices.Join.Inner
                 select
                         ps.district_id,
                         count(i.id),
-                        sum(i.reapeir_cost)
+                        sum(i.reapair_cost)
                 from gai.incidents i
                 inner join gai.police_station ps on i.police_station_id = ps.id
                 where i.incident_date between @from and @to

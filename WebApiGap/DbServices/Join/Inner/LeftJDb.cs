@@ -7,49 +7,38 @@ namespace WebApiGap.DbServices.Join.Inner
 {
     public partial class JDb
     {
-        //левое соеденение + запрос на запросеф
-        public List<Incident> GetFullIncidentByOfficer(Officer oficer)
+        /// <summary>
+        /// Левое внешнее соеденение 
+        /// </summary>
+        /// <returns></returns>
+        public List<IncidentOfficerDto> GetLeftJoinIncidentsWithOfficers()
         {
+            
             var constring = _context.Database.GetConnectionString();
+            using var conn = new NpgsqlConnection(constring);
+            conn.Open();
+            var cmd = new NpgsqlCommand(@"
+                SELECT i.id, i.incident_date,
+                       o.first_name || ' ' || o.last_name AS officer_name,
+                       r.rank_name
+                FROM gai.incidents i
+                LEFT JOIN gai.incident_officers io ON i.id = io.incident_id
+                LEFT JOIN gai.officers o ON io.officer_id = o.id
+                LEFT JOIN gai.ranks r ON o.rank_id = r.id", conn);
 
-            using (var conn = new NpgsqlConnection(constring))
+            var list = new List<IncidentOfficerDto>();
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
             {
-                conn.Open();
-
-                var cmd = new NpgsqlCommand(@"
-                select 
-                    i.id as incident_id,
-                    i.incident_date,
-                    o.first_name,
-                    o.last_name,
-                    r.rank_name
-                    from gai.incident_officers io 
-                    inner join gai.incidents i 
-                        on i.id = io.incidents_id
-                    inner join gai.officers o
-                        on o.id = io.officer_id
-                    left join gai.ranks r
-                        on r.id = o.rank_id
-                    where o.id = @officer_id", conn);
-
-                cmd.Parameters.AddWithValue("officer_id", oficer.Id);
-
-                var list = new List<Incident>();
-
-                using (var reader = cmd.ExecuteReader())
+                list.Add(new IncidentOfficerDto
                 {
-                    while (reader.Read())
-                    {
-                        list.Add(new Incident
-                        {
-
-                            Id = reader.GetGuid(0),
-                            IncidentDate = reader.GetFieldValue<DateOnly>(1)
-                        });
-                    }
-                }
-                return list;
+                    IncidentId = reader.GetGuid(0),
+                    IncidentDate = reader.GetFieldValue<DateOnly>(1),
+                    OfficerName = reader.IsDBNull(2) ? null : reader.GetString(2),
+                    RankName = reader.IsDBNull(3) ? null : reader.GetString(3)
+                });
             }
+            return list;
         }
 
         //инценденты по районам 
@@ -86,48 +75,6 @@ namespace WebApiGap.DbServices.Join.Inner
                     }
                 }
 
-                return list;
-            }
-        }
-
-        /// <summary>
-        /// Левое внешнее соединение
-        /// </summary>
-        public List<IncidentOfficerDto> GetLeftJoinIncidentsWithOfficers() 
-        {
-            var constring = _context.Database.GetConnectionString();
-
-            using (var conn = new NpgsqlConnection(constring))
-            {
-                conn.Open();
-
-                var cmd = new NpgsqlCommand(@"
-                select
-                        i.id,
-                        i.incident_date,
-                        o.first_name || '' || o.last_name as officer_name,
-                        r.rank_name
-                from gai.incidents i
-                left join gai.incident_officers io on i.id = io.incident_id
-                left join gai.officers o on io.officer_id = o.id
-                left join gai.ranks r on o.rank_id = r.id
-                ", conn);
-
-                var list = new List<IncidentOfficerDto>();
-
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        list.Add(new IncidentOfficerDto
-                        {
-                            IncidentId = reader.GetGuid(0),
-                            IncidentDate = reader.GetFieldValue<DateOnly>(1),
-                            OfficerName = reader.IsDBNull(2) ? null : reader.GetString(2),
-                            RankName = reader.IsDBNull(3) ? null : reader.GetString(3),
-                        });
-                    }
-                }
                 return list;
             }
         }
