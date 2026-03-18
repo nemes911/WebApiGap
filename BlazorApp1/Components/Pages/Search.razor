@@ -1,0 +1,208 @@
+﻿@page "/dashboard"   
+@using MudBlazor
+
+<MudLayout>
+    <MudAppBar Elevation="1" Color="Color.Dark">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Size="Size.Small" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+        <MudSpacer />
+        <MudText Typo="Typo.h6" Class="mud-text-primary">ГИБДД — Дашборд</MudText>
+        <MudSpacer />
+        <MudText Typo="Typo.body2" Class="mr-4">Петров И.О. | Начальник участка №3</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.Notifications" Size="Size.Small" Color="Color.Inherit" />
+    </MudAppBar>
+
+    <!-- ===================== БОКОВАЯ ПАНЕЛЬ (уже улучшенная) ===================== -->
+    <MudDrawer @bind-Open="@_drawerOpen"
+               Elevation="2"
+               Variant="DrawerVariant.Persistent"
+               ClipMode="DrawerClipMode.Never"
+               Width="280px">
+
+        <MudDrawerHeader Class="align-center">
+            <MudText Typo="Typo.h6" Class="ml-3 mud-text-primary">ГИБДД</MudText>
+            <MudSpacer />
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" 
+                           OnClick="@ToggleDrawer"
+                           Size="Size.Small"
+                           Color="Color.Inherit" />
+        </MudDrawerHeader>
+
+        <MudDivider />
+
+        <MudNavMenu Margin="Margin.Dense" Rounded="true" Class="pa-2">
+            <MudNavLink Href="/dashboard" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard" IconColor="Color.Primary"
+                        Style="--mud-nav-link-icon-size: 14px;">
+                Дашборд
+            </MudNavLink>
+            <MudNavLink Href="/incidents" Icon="@Icons.Material.Filled.CarCrash" IconColor="Color.Error"
+                        Style="--mud-nav-link-icon-size: 14px;">
+                Инциденты / ДТП
+            </MudNavLink>
+            <MudNavLink Href="/vehicles" Icon="@Icons.Material.Filled.DirectionsCar" IconColor="Color.Info"
+                        Style="--mud-nav-link-icon-size: 14px;">
+                Транспортные средства
+            </MudNavLink>
+            <MudNavLink Href="/persons" Icon="@Icons.Material.Filled.Person" IconColor="Color.Success"
+                        Style="--mud-nav-link-icon-size: 14px;">
+                Водители / Лица
+            </MudNavLink>
+
+            <MudNavGroup Title="Отчёты" Icon="@Icons.Material.Filled.Analytics"  Expanded="true"
+                         Style="--mud-nav-link-icon-size: 14px;"
+            Class="mt-3">
+                <MudNavLink Href="/reports/daily" Icon="@Icons.Material.Filled.Today"
+                            Style="--mud-nav-link-icon-size: 14px;">Суточные</MudNavLink>
+                <MudNavLink Href="/reports/monthly" Icon="@Icons.Material.Filled.CalendarMonth"
+                            Style="--mud-nav-link-icon-size: 14px;">Месячные</MudNavLink>
+                <MudNavLink Href="/reports/locations" Icon="@Icons.Material.Filled.LocationOn"
+                            Style="--mud-nav-link-icon-size: 14px;">Топ локаций</MudNavLink>
+            </MudNavGroup>
+
+            <MudNavLink Href="/officers" Icon="@Icons.Material.Filled.Badge" IconColor="Color.Warning" 
+                Style="--mud-nav-link-icon-size: 14px;"
+            Class="mt-4">
+                Сотрудники
+            </MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+
+    <!-- ======================== ДАШБОРД (то, что ты просил) ======================== -->
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.False" Class="pa-6 pt-8">
+
+            <MudText Typo="Typo.h4" Class="mb-6 mud-text-primary">Дашборд • Участок №3</MudText>
+
+            <!-- Статистика (4 карточки как на твоём скриншоте) -->
+            <MudGrid Spacing="4">
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Elevation="2">
+                        <MudCardContent Class="d-flex flex-column align-center pa-4">
+                            <MudIcon Icon="@Icons.Material.Filled.Today" Size="Size.Small" Color="Color.Primary" />
+                            <MudText Typo="Typo.body1" Class="mt-2">С сегодня</MudText>
+                            <MudText Typo="Typo.h3" Class="mud-text-primary">7</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Elevation="2">
+                        <MudCardContent Class="d-flex flex-column align-center pa-4">
+                            <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" Color="Color.Primary" />
+                            <MudText Typo="Typo.body1" Class="mt-2">За месяц</MudText>
+                            <MudText Typo="Typo.h3" Class="mud-text-primary">124</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Elevation="2">
+                        <MudCardContent Class="d-flex flex-column align-center pa-4">
+                            <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Size="Size.Small" Color="Color.Success" />
+                            <MudText Typo="Typo.body1" Class="mt-2">Стоимость ремонта</MudText>
+                            <MudText Typo="Typo.h3" Color="Color.Success">3,8 млн ₽</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Elevation="2">
+                        <MudCardContent Class="d-flex flex-column align-center pa-4">
+                            <MudIcon Icon="@Icons.Material.Filled.Timeline" Size="Size.Small" Color="Color.Info" />
+                            <MudText Typo="Typo.body1" Class="mt-2">Общая сумма</MudText>
+                            <MudText Typo="Typo.h3" Class="mud-text-info">12,5 млн ₽</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+
+            <!-- График ДТП по дням -->
+            <MudCard Elevation="2" Class="mt-8">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">ДТП по дням (мой участок)</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudChart T="double"
+                              ChartType="ChartType.Line"
+                              Width="100%"
+                              Height="320px"
+                              Series="@Series"
+                              Labels="@Labels"
+                              XAxisTitle="Дни"
+                              YAxisTitle="Количество ДТП" />
+                </MudCardContent>
+            </MudCard>
+
+            <!-- Таблица недавних инцидентов -->
+            <MudCard Elevation="2" Class="mt-8">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">Недавние инциденты</MudText>
+                    <MudSpacer />
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small">Все инциденты →</MudButton>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudSimpleTable Dense="true" Hover="true" Bordered="true" Class="mud-table-striped">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Локация</th>
+                                <th>Классификация</th>
+                                <th>Стоимость</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>18.03.2026</td>
+                                <td>ул. Ленина, 45</td>
+                                <td>Лёгкое ДТП</td>
+                                <td>125 000 ₽</td>
+                                <td><MudChip T="string" Color="Color.Success" Size="Size.Small">Завершено</MudChip></td>
+                            </tr>
+                            <tr>
+                                <td>17.03.2026</td>
+                                <td>просп. Мира</td>
+                                <td>Средней тяжести</td>
+                                <td>890 000 ₽</td>
+                                <td><MudChip T="string" Color="Color.Warning" Size="Size.Small">В работе</MudChip></td>
+                            </tr>
+                            <tr>
+                                <td>17.03.2026</td>
+                                <td>ул. Советская</td>
+                                <td>Лёгкое ДТП</td>
+                                <td>45 000 ₽</td>
+                                <td><MudChip T="string" Color="Color.Success" Size="Size.Small">Завершено</MudChip></td>
+                            </tr>
+                            <tr>
+                                <td>16.03.2026</td>
+                                <td>Кольцевая дорога</td>
+                                <td>Тяжёлое ДТП</td>
+                                <td>2 150 000 ₽</td>
+                                <td><MudChip T="string" Color="Color.Error" Size="Size.Small">Требует проверки</MudChip></td>
+                            </tr>
+                        </tbody>
+                    </MudSimpleTable>
+                </MudCardContent>
+            </MudCard>
+
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+
+    
+    // Данные для графика (статические, без моделей)
+    private readonly List<ChartSeries<double>> Series = new()
+    {
+        new ChartSeries<double>
+        {
+            Name = "ДТП",
+            Data = new double[] { 4, 1, 5, 2, 6, 3, 7, 4, 5, 3, 6, 2, 8 }
+        }
+    };
+
+    private readonly string[] Labels = { "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22" };
+}

@@ -44,5 +44,5 @@ namespace WebApiGap.DbServices.Join.Inner
         }
 
     }
-    }
+    
 }

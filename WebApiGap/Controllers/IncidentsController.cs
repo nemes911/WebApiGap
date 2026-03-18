@@ -59,6 +59,12 @@ namespace API_GAI.Controllers
             return Ok(list = _JDb.GetIncidents(incident));
         }
 
+        [HttpGet("GetFullInfoIncidents")]
+        public IActionResult GetFullInfoIncident([FromBody] PoliceStation station)
+        {
+            return Ok(_JDb.GetFullInfoIncident(station));
+        }
+
         /// <summary>
         /// Симметричное внутреннее соединение с условием по датам
         /// </summary>
@@ -99,7 +105,7 @@ namespace API_GAI.Controllers
         /// <param name="OfficerId"></param>
         /// <returns></returns>
         [HttpGet("SubqueryLeftJoinStyle/{officerId}")]
-        public IActionResult GetSubqueryLeftJoinStyle(Guid OfficerId)
+        public IActionResult GetSubqueryLeftJoinStyle([FromQuery] Guid OfficerId)
         {
             var officer = new Officer { Id = OfficerId };
             return Ok(_JDb.GetSubqueryLeftJoinStyle(officer));

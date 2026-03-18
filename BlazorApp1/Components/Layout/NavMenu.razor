@@ -1,30 +1,33 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">BlazorApp1</a>
-    </div>
-</div>
+﻿@*/@inject SessionService session
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+<MudNavMenu Margin="Margin.Dense" Rounded="true" Bordered="true">
+    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">
+        Главная
+    </MudNavLink>
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
+    <MudNavLink Href="/document" Icon="@Icons.Material.Filled.Description">
+        Документы
+    </MudNavLink>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
+    <MudNavLink Href="/applications" Icon="@Icons.Material.Filled.Assignment">
+        Заявки
+    </MudNavLink>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
-    </nav>
-</div>
+    <MudNavLink Href="/reports" Icon="@Icons.Material.Filled.Assessment">
+        Отчёты
+    </MudNavLink>
 
+    <MudNavLink Href="/templates" Icon="@Icons.Material.Filled.Article">
+        Шаблоны
+    </MudNavLink>
+
+    @if (session.IsAuthenticated)
+    {
+        <MudDivider Class="my-3" />
+        <MudText Typo="Typo.subtitle2" Class="pa-4 text-center">
+            @session.name (@session.role)
+        </MudText>
+    }
+</MudNavMenu>
+
+@*/*@

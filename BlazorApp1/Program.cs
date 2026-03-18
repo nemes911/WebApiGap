@@ -4,6 +4,7 @@ using BlazorApp1.Data.Dinamic.Service;
 using BlazorApp1.Http.Implements;
 using BlazorApp1.Http.Service;
 using BlazorApp1.SettingsApi;
+using MudBlazor.Services;
 using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -40,6 +41,8 @@ builder.Services.AddHttpClient("BlazorClient", c =>
         HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
     return handler;
 } );
+
+builder.Services.AddMudServices();
 
 builder.Services.AddHttpContextAccessor();
 

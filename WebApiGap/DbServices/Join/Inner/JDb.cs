@@ -412,16 +412,12 @@ namespace WebApiGap.DbServices.Join.Inner
                     IncidentClassId = reader.GetInt32(1),
                     IncidentDate = reader.GetFieldValue<DateOnly>(2),
                     Description = reader.GetString(3),
-                    RepairCost = reader.GetDecimal(4),
+                    RepairCost = reader.IsDBNull(2) ? 0 : reader.GetDecimal(4)
                     // можно добавить вложенные объекты
                 });
             }
             return list;
         }
-
-        // =====================================================================
-        // Остальные запросы из задания (левые, правые, итоговые и т.д.)
-        // =====================================================================
 
      
         /// <summary>
@@ -454,7 +450,7 @@ namespace WebApiGap.DbServices.Join.Inner
                         {
                          DistrictId = reader.GetInt32(0),
                          IncidentCount = reader.GetInt32(1),
-                         TotalDamage = reader.GetDecimal(2)
+                         TotalDamage = reader.IsDBNull(2) ? 0 : reader.GetDecimal(2)
                         });
                     }
                 }
@@ -478,7 +474,7 @@ namespace WebApiGap.DbServices.Join.Inner
                 var cmd = new NpgsqlCommand(@"
                 select
                     ps.district_id,
-                    count(i.id)
+                    count(i.id),
                     sum(i.repair_cost)
                 from gai.incidents i
                 inner join gai.police_station ps on i.police_station_id = ps.id
@@ -540,7 +536,7 @@ namespace WebApiGap.DbServices.Join.Inner
                         {
                             DistrictId = reader.GetInt32(0),
                             IncidentCount = reader.GetInt32(1),
-                            TotalDamage = reader.GetDecimal(2)
+                            TotalDamage = reader.IsDBNull(2) ? 0 : reader.GetDecimal(2)
                         });
                     }
                 }
@@ -566,7 +562,7 @@ namespace WebApiGap.DbServices.Join.Inner
                 select
                         ps.district_id,
                         count(i.id),
-                        sum(i.reapair_cost)
+                        sum(i.repair_cost)
                 from gai.incidents i
                 inner join gai.police_station ps on i.police_station_id = ps.id
                 where i.incident_date between @from and @to
@@ -587,7 +583,7 @@ namespace WebApiGap.DbServices.Join.Inner
                         {
                             DistrictId = reader.GetInt32(0),
                             IncidentCount = reader.GetInt32(1),
-                            TotalDamage = reader.GetDecimal(2)
+                            TotalDamage = reader.IsDBNull(2) ? 0 : reader.GetDecimal(2)
                         });
                     }
                 }
@@ -676,7 +672,7 @@ namespace WebApiGap.DbServices.Join.Inner
                     IncidentClassId = reader.GetInt32(1),
                     IncidentDate = reader.GetFieldValue<DateOnly>(2),
                     Description = reader.GetString(3),
-                    RepairCost = reader.GetDecimal(4)
+                    RepairCost = reader.IsDBNull(2) ? 0 : reader.GetDecimal(4)
                 });
             }
 
