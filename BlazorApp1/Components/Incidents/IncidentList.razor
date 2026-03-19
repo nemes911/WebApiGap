@@ -1,0 +1,45 @@
+<div class="table-responsive">
+    <table class="table table-sm table-hover align-middle">
+        <thead>
+            <tr>
+                <th style="width: 120px;">Дата</th>
+                <th>Локация</th>
+                <th style="width: 120px;">Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var row in Items)
+            {
+                var isActive = Selected?.Id == row.Id;
+                <tr role="button" class="@(isActive ? "table-primary" : "")" @onclick="@(() => Select(row))">
+                    <td>@row.Date</td>
+                    <td>@row.Location</td>
+                    <td>
+                        <span class="badge @row.StatusBadgeClass">@row.Status</span>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter] public IReadOnlyList<IncidentRow> Items { get; set; } = Array.Empty<IncidentRow>();
+    [Parameter] public IncidentRow? Selected { get; set; }
+    [Parameter] public EventCallback<IncidentRow> SelectedChanged { get; set; }
+
+    private async Task Select(IncidentRow row)
+    {
+        await SelectedChanged.InvokeAsync(row);
+    }
+
+    public sealed class IncidentRow
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Date { get; set; } = string.Empty;
+        public string Location { get; set; } = string.Empty;
+        public string Status { get; set; } = "Черновик";
+        public string StatusBadgeClass { get; set; } = "text-bg-secondary";
+    }
+}
+

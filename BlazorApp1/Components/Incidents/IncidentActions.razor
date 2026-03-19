@@ -1,0 +1,28 @@
+@inject NavigationManager Nav
+
+<div class="d-flex gap-2">
+    <button type="button" class="btn btn-primary" @onclick="Create">Добавить</button>
+    <button type="button" class="btn btn-outline-secondary" @onclick="Edit" disabled="@(Selected is null)">Изменить</button>
+    <button type="button" class="btn btn-outline-danger" disabled>Удалить</button>
+</div>
+
+@code {
+    [Parameter] public IncidentList.IncidentRow? Selected { get; set; }
+    [Parameter] public EventCallback OnDelete { get; set; }
+
+    private void Create() => Nav.NavigateTo("/incidents/new");
+
+    private void Edit()
+    {
+        if (Selected is null)
+            return;
+        Nav.NavigateTo($"/incidents/{Selected.Id}");
+    }
+
+    private async Task Delete()
+    {
+        // API controllers currently do not expose DELETE endpoints.
+        await OnDelete.InvokeAsync();
+    }
+}
+

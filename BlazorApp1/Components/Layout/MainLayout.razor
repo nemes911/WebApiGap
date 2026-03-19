@@ -1,7 +1,58 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
-<MudThemeProvider />
-<MudDialogProvider />
-<MudSnackbarProvider />
+@inject BlazorApp1.Http.Service.SessionService Session
+@inject NavigationManager Nav
 
-@Body
+<div class="app-shell">
+    <header class="app-topbar">
+        <button type="button" class="btn btn-sm btn-outline-light" @onclick="ToggleSidebar">
+            ☰
+        </button>
+
+        <div class="app-title">
+            ГИБДД — ДТП
+        </div>
+
+        <div class="app-user">
+            @if (Session.IsAuthenticated)
+            {
+                <span class="me-2">@Session.name (@Session.role)</span>
+                <button type="button" class="btn btn-sm btn-outline-light" @onclick="Logout">Выйти</button>
+            }
+            else
+            {
+                <button type="button" class="btn btn-sm btn-outline-light" @onclick="@(() => Nav.NavigateTo("/login"))">Войти</button>
+            }
+        </div>
+    </header>
+
+    <div class="app-body">
+        <aside class="app-sidebar @( _sidebarOpen ? "" : "is-collapsed")">
+            <nav class="nav flex-column p-2">
+                <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">Главная</NavLink>
+                <NavLink class="nav-link" href="/dashboard">Дашборд</NavLink>
+                <NavLink class="nav-link" href="/incidents">Инциденты / ДТП</NavLink>
+                <NavLink class="nav-link" href="/incidents/new">Регистрация ДТП</NavLink>
+                <NavLink class="nav-link" href="/map">Поиск</NavLink>
+                <NavLink class="nav-link" href="/documents">Документы</NavLink>
+                <NavLink class="nav-link" href="/templates">Шаблоны</NavLink>
+            </nav>
+        </aside>
+
+        <main class="app-content">
+            @Body
+        </main>
+    </div>
+</div>
+
+@code {
+    private bool _sidebarOpen = true;
+
+    private void ToggleSidebar() => _sidebarOpen = !_sidebarOpen;
+
+    private void Logout()
+    {
+        // SessionService currently has no Clear(); keep behavior minimal.
+        Nav.NavigateTo("/login", forceLoad: false);
+    }
+}

@@ -1,82 +1,173 @@
-﻿@using System.ComponentModel.DataAnnotations
-@using BlazorApp1.DTO.Request
-@using BlazorApp1.Data.Default
+@using System.ComponentModel.DataAnnotations
 @using BlazorApp1.Http.Service
-@inject ISender<Vehicle> sender
 @using Microsoft.AspNetCore.Components.Forms
+@using BlazorApp1.DTO.Request
+@inject ISender<Vehicle> senderVehicle
+@inject ISender<Incident> senderIncident
+@inject ISender<IncidentVehicle> senderIncidentVehicle
 
-<div>
-    <ul class="nav nav-pills nav-justified">
-        <li class="nav-item">
-            <a class="nav-link @(currentStep == 1 ? "active" : "")">
-                Шаг 1 — Транспорт
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link @(currentStep == 2 ? "active" : "")">
-                Шаг 2 — Инцидент
-            </a>
-        </li>
-    </ul>
+<ul class="nav nav-pills mb-3">
+    <li class="nav-item">
+        <span class="nav-link @(_step == 1 ? "active" : "")">Шаг 1 — Транспорт</span>
+    </li>
+    <li class="nav-item">
+        <span class="nav-link @(_step == 2 ? "active" : "")">Шаг 2 — Инцидент</span>
+    </li>
+    <li class="nav-item">
+        <span class="nav-link @(_step == 3 ? "active" : "")">Шаг 3 — Проверка</span>
+    </li>
+</ul>
 
-    <div class="mt-4">
+<WizardStep IsActive="@(_step == 1)" Title="Транспорт (поиск в базе)">
+    <EditForm Model="_vehicleLookup" OnValidSubmit="SelectVehicle">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
 
-        @if (currentStep == 1)
-        {
-            <EditForm Model="vehicle" OnValidSubmit="SelectVehicle">
-                <div class="mb-3">
-                    <label>Гос. номер</label>
-                    <InputNumber class="form-control" @bind-value="vehicle.SerialNumber" />
-                </div>
+        <div class="row g-2">
+            <div class="col-12 col-md-6">
+                <label class="form-label">Гос. номер (серия/номер)</label>
+                <InputNumber class="form-control" @bind-Value="_vehicleLookup.SerialNumber" />
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label">VIN</label>
+                <InputText class="form-control" @bind-Value="_vehicleLookup.Vin" />
+            </div>
+        </div>
 
-                <div class="mb-3">
-                    <label>VIN</label>
-                    <InputText class="form-control" @bind-value="vehicle.Vin" />
-                </div>
+        <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Найти</button>
+            @if (_vehicle is not null && _vehicle.Id != Guid.Empty)
+            {
+                <span class="badge text-bg-success align-self-center">Найдено</span>
+            }
+        </div>
+    </EditForm>
+</WizardStep>
 
-                <button type="submit" class="btn btn-primary">
-                    Найти автомобиль
-                </button>
-            </EditForm>
-        }
+<WizardStep IsActive="@(_step == 2)" Title="Инцидент (основные данные)">
+    <EditForm Model="_incident" OnValidSubmit="NextStep">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
 
-        @if (currentStep == 2)
-        {
-            <p>Шаг 2 пока не реализован</p>
-        }
+        <div class="row g-2">
+            <div class="col-12 col-md-6">
+                <label class="form-label">Дата ДТП</label>
+                <InputDate class="form-control" @bind-Value="_incidentDate" />
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label">ID станции (PoliceStationId)</label>
+                <InputNumber class="form-control" @bind-Value="_incident.PoliceStationId" />
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label">Классификация (IncidentClassId)</label>
+                <InputNumber class="form-control" @bind-Value="_incident.IncidentClassId" />
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label">Стоимость ремонта</label>
+                <InputNumber class="form-control" @bind-Value="_incident.RepairCost" />
+            </div>
+            <div class="col-12">
+                <label class="form-label">Локация</label>
+                <InputText class="form-control" @bind-Value="_incident.Location" />
+            </div>
+            <div class="col-12">
+                <label class="form-label">Описание</label>
+                <InputTextArea class="form-control" rows="4" @bind-Value="_incident.Description" />
+            </div>
+        </div>
 
+        <div class="form-text mt-2">
+            Поля про классификацию/станцию можно добавить позже — сейчас это UI-скелет.
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-4">Далее</button>
+    </EditForm>
+</WizardStep>
+
+<WizardStep IsActive="@(_step == 3)" Title="Проверка перед регистрацией">
+    <div class="row g-3">
+        <div class="col-12 col-md-6">
+            <div class="card p-3">
+                <h6 class="mb-2">Транспорт</h6>
+                @if (_vehicle is null || _vehicle.Id == Guid.Empty)
+                {
+                    <div>Не выбран</div>
+                }
+                else
+                {
+                    <div><b>Гос. номер:</b> @_vehicle.SerialNumber</div>
+                    <div><b>VIN:</b> @_vehicle.Vin</div>
+                    <div><b>Марка:</b> @_vehicle.CarBrand</div>
+                }
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <div class="card p-3">
+                <h6 class="mb-2">Инцидент</h6>
+                <div><b>Дата:</b> @_incident.IncidentDate</div>
+                <div><b>Локация:</b> @_incident.Location</div>
+                <div><b>Стоимость:</b> @_incident.RepairCost</div>
+                <div><b>Описание:</b> @_incident.Description</div>
+            </div>
+        </div>
     </div>
-</div>
 
-<div class="mt-4">
-    <button class="btn btn-secondary"
-            @onclick="PrevStep"
-            disabled="@(currentStep == 1)">
-        Назад
-    </button>
+    <div class="alert alert-info mt-4" role="alert">
+        Нажми “Готово”, чтобы отправить “SetIncident” и связку “SetIncidentVehicle” через текущий  (без изменений в Sender).
+    </div>
 
-    <button class="btn btn-primary"
-            @onclick="NextStep"
-            disabled="@(currentStep == 1 && vehicle.Id == Guid.Empty)">
-        Далее
+    @if (!string.IsNullOrWhiteSpace(_submitError))
+    {
+        <div class="alert alert-danger" role="alert">@_submitError</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_submitOk))
+    {
+        <div class="alert alert-success" role="alert">@_submitOk</div>
+    }
+</WizardStep>
+
+<div class="mt-4 d-flex justify-content-between">
+    <button type="button" class="btn btn-outline-secondary" @onclick="PrevStep" disabled="@(_step == 1)">Назад</button>
+
+    <button type="button" class="btn btn-primary"
+            @onclick="NextOrSubmit"
+            disabled="@(_step == 1 && (_vehicle is null || _vehicle.Id == Guid.Empty))">
+        @(_step < 3 ? "Далее" : "Готово")
     </button>
 </div>
 
 @code {
+    private int _step = 1;
 
-    private int currentStep = 1;
+    private VehicleLookupModel _vehicleLookup = new();
+    private Vehicle? _vehicle;
 
-    private Person person = new(); // пока не используем
-    private Person personB = new(); // оставляем, но не используем
+    private DateTime? _incidentDate = DateTime.Today;
 
-    private Vehicle vehicle = new();
+    private Incident _incident = new()
+    {
+        IncidentDate = DateOnly.FromDateTime(DateTime.Today),
+        Timestamp = DateTime.UtcNow,
+        Description = string.Empty,
+        Location = string.Empty
+    };
 
-    private IncidentVehicle incidentvehicle = new();
+    private bool _submitting;
+    private string? _submitError;
+    private string? _submitOk;
 
     private async Task SelectVehicle()
     {
-        var response = await sender.SendAsync(
-            vehicle,
+        var request = new Vehicle
+        {
+            SerialNumber = _vehicleLookup.SerialNumber,
+            Vin = _vehicleLookup.Vin,
+            CarBrand = string.Empty
+        };
+
+        var response = await senderVehicle.SendAsync(
+            request,
             "https://localhost7011/vehicle",
             HttpMethod.Post);
 
@@ -84,23 +175,110 @@
             return;
 
         var result = await response.Content.ReadFromJsonAsync<Vehicle>();
-
         if (result is null)
             return;
 
-        vehicle.Id = result.Id;
-        person.Id = result.OwnerId; // связываем владельца
+        _vehicle = result;
     }
 
     private void NextStep()
     {
-        if (currentStep == 1 && vehicle.Id != Guid.Empty)
-            currentStep = 2;
+        if (_step == 2)
+        {
+            if (_incidentDate.HasValue)
+                _incident.IncidentDate = DateOnly.FromDateTime(_incidentDate.Value);
+        }
+
+        if (_step == 1 && (_vehicle is null || _vehicle.Id == Guid.Empty))
+            return;
+
+        if (_step < 3)
+            _step++;
+    }
+
+    private async Task NextOrSubmit()
+    {
+        if (_step < 3)
+        {
+            NextStep();
+            return;
+        }
+
+        if (_submitting)
+            return;
+
+        _submitError = null;
+        _submitOk = null;
+
+        if (_vehicle is null || _vehicle.Id == Guid.Empty)
+        {
+            _submitError = "Не выбран транспорт.";
+            return;
+        }
+
+        if (_incidentDate.HasValue)
+            _incident.IncidentDate = DateOnly.FromDateTime(_incidentDate.Value);
+
+        _submitting = true;
+        try
+        {
+            // 1) Create incident
+            var respIncident = await senderIncident.SendAsync(
+                _incident,
+                "https://localhost:7011/api/Incidents/SetIncident",
+                HttpMethod.Post);
+
+            if (!respIncident.IsSuccessStatusCode)
+            {
+                _submitError = $"Ошибка SetIncident: {(int)respIncident.StatusCode} {respIncident.ReasonPhrase}";
+                return;
+            }
+
+            var created = await respIncident.Content.ReadFromJsonAsync<Incident>();
+            if (created is null || created.Id == Guid.Empty)
+            {
+                _submitError = "SetIncident вернул пустой результат.";
+                return;
+            }
+
+            // 2) Link incident to vehicle
+            var link = new IncidentVehicle
+            {
+                IncidentId = created.Id,
+                VehicleId = _vehicle.Id
+            };
+
+            var respLink = await senderIncidentVehicle.SendAsync(
+                link,
+                "https://localhost:7011/api/IncidentVehicles/SetIncidentVehicle",
+                HttpMethod.Post);
+
+            if (!respLink.IsSuccessStatusCode)
+            {
+                _submitError = $"Инцидент создан (ID={created.Id}), но ошибка связки SetIncidentVehicle: {(int)respLink.StatusCode} {respLink.ReasonPhrase}";
+                return;
+            }
+
+            _submitOk = $"ДТП зарегистрировано. ID: {created.Id}";
+        }
+        finally
+        {
+            _submitting = false;
+        }
     }
 
     private void PrevStep()
     {
-        if (currentStep > 1)
-            currentStep--;
+        if (_step > 1)
+            _step--;
+    }
+
+    private sealed class VehicleLookupModel
+    {
+        [Required]
+        public int SerialNumber { get; set; }
+
+        [Required]
+        public string Vin { get; set; } = string.Empty;
     }
 }

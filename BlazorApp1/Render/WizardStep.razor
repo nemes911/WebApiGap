@@ -1,7 +1,16 @@
-﻿@ChildContent
-
-<h3>WizardStep</h3>
+@if (IsActive)
+{
+    <div class="card p-3">
+        @if (!string.IsNullOrWhiteSpace(Title))
+        {
+            <h5 class="mb-3">@Title</h5>
+        }
+        @ChildContent
+    </div>
+}
 
 @code {
-
+    [Parameter] public bool IsActive { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
 }

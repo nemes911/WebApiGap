@@ -1,5 +1,5 @@
-﻿
-@page "/login"
+
+@page "/"
 @using System.ComponentModel.DataAnnotations
 @inject ISender<User> sender
 @inject SessionService session
@@ -28,6 +28,14 @@
 @code {
 
     private LoginModel loginModel = new();
+
+    protected override void OnInitialized()
+    {
+        if (session.IsAuthenticated)
+        {
+            nav.NavigateTo("/dashboard");
+        }
+    }
 
     private async Task Submit()
     {
@@ -66,7 +74,7 @@
 
         _key.SetSession(session);
 
-        nav.NavigateTo("/map");
+        nav.NavigateTo("/dashboard");
     }
 
     public class LoginModel

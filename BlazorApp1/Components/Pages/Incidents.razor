@@ -1,0 +1,54 @@
+@page "/incidents"
+@using BlazorApp1.Components.Incidents
+
+<h3 class="mb-3">Инциденты / ДТП</h3>
+
+<div class="row g-3">
+    <div class="col-12 col-lg-5">
+        <div class="card p-3">
+            <div class="fw-semibold mb-2">Список</div>
+            <IncidentList Items="_items" Selected="_selected" SelectedChanged="OnSelected" />
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-7">
+        <IncidentDetails Selected="_selected" />
+        <div class="mt-3">
+            <IncidentActions Selected="_selected" OnDelete="OnDelete" />
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<IncidentList.IncidentRow> _items = new();
+    private IncidentList.IncidentRow? _selected;
+
+    protected override void OnInitialized()
+    {
+        // UI-only seed data (keeps API untouched). Later we can load from existing endpoints.
+        _items = new()
+        {
+            new() { Id = "323", Date = "18.03.2026", Location = "ул. Ленина, 45", Status = "Завершено", StatusBadgeClass = "text-bg-success" },
+            new() { Id = "432", Date = "17.03.2026", Location = "просп. Мира", Status = "В работе", StatusBadgeClass = "text-bg-warning" },
+            new() { Id = "517", Date = "16.03.2026", Location = "Кольцевая дорога", Status = "Проверка", StatusBadgeClass = "text-bg-danger" },
+        };
+        _selected = _items.FirstOrDefault();
+    }
+
+    private Task OnSelected(IncidentList.IncidentRow row)
+    {
+        _selected = row;
+        return Task.CompletedTask;
+    }
+
+    private Task OnDelete()
+    {
+        if (_selected is null)
+            return Task.CompletedTask;
+
+        _items.Remove(_selected);
+        _selected = _items.FirstOrDefault();
+        return Task.CompletedTask;
+    }
+}
+

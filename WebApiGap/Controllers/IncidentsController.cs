@@ -14,7 +14,7 @@ namespace API_GAI.Controllers
     {
         private readonly IDefaultDB<Incident> _Repo;
 
-        private readonly JDb _JDb;
+        private readonly JDb _JDb;  
 
         public IncidentsController(IDefaultDB<Incident> repo, JDb jDb)
         {
@@ -40,6 +40,13 @@ namespace API_GAI.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             return Ok(await _Repo.UpdateAsync(incident));
+        }
+        [HttpGet("by-date")]
+        public async Task<IActionResult> GetByDate(DateOnly date)
+        {
+            List<Incident> incident = await _Repo.GetByAsync<DateOnly>(x => x.IncidentDate, date);
+            if (incident == null) return BadRequest();
+            return Ok(incident);
         }
 
         //get count incidents

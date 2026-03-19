@@ -61,7 +61,7 @@ h1:focus {
     z-index: 1000;
 }
 body {
-    front-family: Segoe UI, Arial;
+    font-family: Segoe UI, Arial;
     background-color: #f4f6f8;
     margin: 0;
 }
@@ -144,7 +144,7 @@ tr:hover {
     background: white;
     border: 1px solid #ccc;
     border-radius: 6px;
-    padding: 15p;
+    padding: 15px;
     display: flex;
 }
 
@@ -186,5 +186,72 @@ tr:hover {
 
 .nav-icon:hover{
     transform: scale(1.2);
+}
+
+/* ===== App shell (no MudBlazor) ===== */
+.app-shell {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.app-topbar {
+    height: 56px;
+    background: #212529;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px;
+}
+
+.app-title {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.app-user {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+}
+
+.app-body {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+}
+
+.app-sidebar {
+    width: 260px;
+    background: #ffffff;
+    border-right: 1px solid #e5e7eb;
+    overflow-y: auto;
+}
+
+.app-sidebar.is-collapsed {
+    width: 0;
+    border-right: none;
+    overflow: hidden;
+}
+
+.app-sidebar .nav-link {
+    color: #212529;
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+
+.app-sidebar .nav-link.active {
+    background: #eef2ff;
+    color: #1e40af;
+    font-weight: 600;
+}
+
+.app-content {
+    flex: 1;
+    overflow: auto;
+    padding: 16px;
 }
 
