@@ -1,54 +1,279 @@
 @page "/incidents"
-@using BlazorApp1.Components.Incidents
+@inject IHttpClientFactory HttpClientFactory
+@inject Key Key
+@inject NavigationManager Nav
 
-<h3 class="mb-3">Инциденты / ДТП</h3>
+<div class="container-fluid py-4" style="background-color: #121212; color: #e0e0e0; min-height: 100vh;">
+    <!-- Заголовок -->
+    <h3 class="text-center mb-4 text-light">Инциденты / ДТП</h3>
 
-<div class="row g-3">
-    <div class="col-12 col-lg-5">
-        <div class="card p-3">
-            <div class="fw-semibold mb-2">Список</div>
-            <IncidentList Items="_items" Selected="_selected" SelectedChanged="OnSelected" />
+    @if (_isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-light" role="status">
+                <span class="visually-hidden">Загрузка...</span>
+            </div>
         </div>
-    </div>
-
-    <div class="col-12 col-lg-7">
-        <IncidentDetails Selected="_selected" />
-        <div class="mt-3">
-            <IncidentActions Selected="_selected" OnDelete="OnDelete" />
+    }
+    else if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="alert alert-danger">
+            @_errorMessage
         </div>
-    </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            <!-- Левая часть — список -->
+            <div class="col-12 col-lg-5">
+                <div class="card bg-dark border-secondary shadow-sm h-100">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">Список инцидентов</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive" style="max-height: 70vh; overflow-y: auto;">
+                            <table class="table table-dark table-hover table-striped mb-0">
+                                <thead class="sticky-top bg-dark">
+                                    <tr>
+                                        <th>№</th>
+                                        <th>Дата</th>
+                                        <th>Описание</th>
+                                        <th>Место</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in _items)
+                                    {
+                                        <tr class="@(item == _selected ? "table-active" : "")"
+                                            style="cursor: pointer;"
+                                            @onclick="() => SelectItem(item)">
+                                            <td>@item.No</td>
+                                            <td>@(item.IncidentDate.ToString("dd.MM.yyyy"))</td>
+                                            <td>@(item.Description.Length > 30 ? item.Description.Substring(0, 30) + "..." : item.Description)</td>
+                                            <td>@item.Location</td>
+                                        </tr>
+                                    }
+                                    @if (!_items.Any())
+                                    {
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted py-4">
+                                                Нет инцидентов
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая часть — детали -->
+            <div class="col-12 col-lg-7">
+                <div class="card bg-dark border-secondary shadow-sm h-100">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">Детали выбранного инцидента</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (_selected != null)
+                        {
+                            <dl class="row g-3">
+                                <dt class="col-sm-4 text-muted">№</dt>
+                                <dd class="col-sm-8">@_selected.No</dd>
+
+                                <dt class="col-sm-4 text-muted">Дата</dt>
+                                <dd class="col-sm-8">@_selected.IncidentDate.ToString("dd.MM.yyyy")</dd>
+
+                                <dt class="col-sm-4 text-muted">Описание</dt>
+                                <dd class="col-sm-8">@_selected.Description</dd>
+
+                                <dt class="col-sm-4 text-muted">Стоимость ремонта</dt>
+                                <dd class="col-sm-8">@(_selected.RepairCost?.ToString("N2") ?? "-") ₽</dd>
+
+                                <dt class="col-sm-4 text-muted">Время фиксации</dt>
+                                <dd class="col-sm-8">@_selected.Timestamp.ToString("dd.MM.yyyy HH:mm")</dd>
+
+                                <dt class="col-sm-4 text-muted">Место</dt>
+                                <dd class="col-sm-8">@_selected.Location</dd>
+                            </dl>
+                        }
+                        else
+                        {
+                            <p class="text-muted text-center mt-5">
+                                Выберите инцидент из списка слева
+                            </p>
+                        }
+                    </div>
+
+                    <div class="card-footer bg-transparent border-0 d-flex justify-content-center gap-3 pb-4">
+                        <button class="btn btn-success px-4" @onclick="AddNew">
+                            Добавить
+                        </button>
+                        <button class="btn btn-primary px-4" @onclick="EditSelected" disabled="@(_selected == null)">
+                            Изменить
+                        </button>
+                        <button class="btn btn-danger px-4" @onclick="DeleteSelected" disabled="@(_selected == null)">
+                            Удалить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 </div>
 
 @code {
-    private List<IncidentList.IncidentRow> _items = new();
-    private IncidentList.IncidentRow? _selected;
-
-    protected override void OnInitialized()
+    // Модель строки списка — полностью на основе Incident
+    private class IncidentRow
     {
-        // UI-only seed data (keeps API untouched). Later we can load from existing endpoints.
-        _items = new()
+        public Guid? Id { get; set; }
+        public string? No { get; set; }
+        public DateOnly IncidentDate { get; set; }
+        public string Description { get; set; } = "";
+        public decimal? RepairCost { get; set; }
+        public DateTime Timestamp { get; set; }
+        public string Location { get; set; } = "";
+    }
+
+    private List<IncidentRow> _items = new();
+    private IncidentRow? _selected;
+    private bool _isLoading = true;
+    private string? _errorMessage;
+    private int count = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
         {
-            new() { Id = "323", Date = "18.03.2026", Location = "ул. Ленина, 45", Status = "Завершено", StatusBadgeClass = "text-bg-success" },
-            new() { Id = "432", Date = "17.03.2026", Location = "просп. Мира", Status = "В работе", StatusBadgeClass = "text-bg-warning" },
-            new() { Id = "517", Date = "16.03.2026", Location = "Кольцевая дорога", Status = "Проверка", StatusBadgeClass = "text-bg-danger" },
+            var sessionId = await Key.GetSessionId();
+            var client = HttpClientFactory.CreateClient("BlazorClient");
+
+            if (!string.IsNullOrEmpty(sessionId))
+            {
+                client.DefaultRequestHeaders.Add("X-Session-Id", sessionId);
+            }
+
+            // Твой реальный эндпоинт для получения списка инцидентов
+            var url = $"https://localhost:7011/api/Incidents/AllIncidents";
+
+            var req = new HttpRequestMessage(HttpMethod.Get, url);
+
+            var response = await client.SendAsync(req);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var incidents = await response.Content.ReadFromJsonAsync<List<Incident>>();
+
+                foreach(var inc in incidents)
+                {
+                    _items.Add(new IncidentRow
+                    {
+                        Id = inc.Id,
+                        No = count.ToString(),
+                        IncidentDate = inc.IncidentDate,
+                        Description = inc.Description,
+                        RepairCost = inc.RepairCost,
+                        Timestamp = inc.Timestamp,
+                        Location = inc.Location
+                    });
+                    count++;
+                }
+            }
+            else
+            {
+                _errorMessage = $"Ошибка загрузки: {(int)response.StatusCode} {response.ReasonPhrase}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Ошибка: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void SelectItem(IncidentRow item)
+    {
+        _selected = item;
+    }
+
+    private async Task AddNew()
+    {
+        // Пример создания нового инцидента на основе Incident
+        var newIncident = new Incident
+        {
+            IncidentDate = DateOnly.FromDateTime(DateTime.Now),
+            Description = "Новое ДТП — описание",
+            RepairCost = 0m,
+            Timestamp = DateTime.Now,
+            Location = "Не указано"
+            // Остальные поля заполняются по умолчанию или через форму
         };
-        _selected = _items.FirstOrDefault();
+
+        try
+        {
+            var client = HttpClientFactory.CreateClient("BlazorClient");
+            var sessionId = await Key.GetSessionId();
+            if (!string.IsNullOrEmpty(sessionId))
+                client.DefaultRequestHeaders.Add("X-Session-Id", sessionId);
+
+            var response = await client.PostAsJsonAsync("https://localhost:7011/api/Incidents/SetIncident", newIncident);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await OnInitializedAsync(); // обновляем список
+                Console.WriteLine("Инцидент добавлен");
+            }
+            else
+            {
+                _errorMessage = "Ошибка добавления инцидента";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Ошибка: {ex.Message}";
+        }
     }
 
-    private Task OnSelected(IncidentList.IncidentRow row)
+    private void EditSelected()
     {
-        _selected = row;
-        return Task.CompletedTask;
+        if (_selected == null) return;
+        Nav.NavigateTo($"/incidents/edit/{_selected.Id}");
     }
 
-    private Task OnDelete()
+    private async Task DeleteSelected()
     {
-        if (_selected is null)
-            return Task.CompletedTask;
+        if (_selected == null) return;
 
-        _items.Remove(_selected);
-        _selected = _items.FirstOrDefault();
-        return Task.CompletedTask;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("BlazorClient");
+            var sessionId = await Key.GetSessionId();
+            if (!string.IsNullOrEmpty(sessionId))
+                client.DefaultRequestHeaders.Add("X-Session-Id", sessionId);
+
+            var response = await client.DeleteAsync($"https://localhost:7011/api/Incidents/Delete/{_selected.Id}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                _items.Remove(_selected);
+                _selected = _items.FirstOrDefault();
+                Console.WriteLine("Инцидент удалён");
+            }
+            else
+            {
+                _errorMessage = "Ошибка удаления";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Ошибка: {ex.Message}";
+        }
     }
 }
-

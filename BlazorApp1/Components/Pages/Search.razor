@@ -2,6 +2,7 @@
 @using BlazorApp1.DTO.Request
 @inject IHttpClientFactory HttpClientFactory
 @inject Key Key
+@inject NavigationManager nav
 
 <h3 class="mb-3">Дашборд</h3>
 
@@ -36,7 +37,10 @@
     <div class="col-12">
         <div class="card p-3">
             <div class="d-flex align-items-center justify-content-between mb-2">
-                <div class="fw-semibold">Недавние ДТП</div>
+                <div>
+                    <div class="fw-semibold">Недавние ДТП</div>
+                    <div class="text-muted small">За последние 7 дней</div>
+                </div>
                 <a class="btn btn-sm btn-outline-primary" href="/incidents">Все →</a>
             </div>
             <div class="table-responsive">
@@ -95,13 +99,68 @@
     </div>
 </div>
 
+<div class="row g-3 mt-1">
+    <div class="col-12">
+        <div class="card p-3">
+            <div class="fw-semibold mb-2">ДТП за сегодня</div>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width: 120px;">Дата</th>
+                            <th>Локация</th>
+                            <th>Описание</th>
+                            <th style="width: 160px;">Стоимость</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (_loadingToday)
+                        {
+                            <tr>
+                                <td colspan="4" class="text-muted">Загрузка…</td>
+                            </tr>
+                        }
+                        else if (!string.IsNullOrWhiteSpace(_errorToday))
+                        {
+                            <tr>
+                                <td colspan="4" class="text-danger">@_errorToday</td>
+                            </tr>
+                        }
+                        else if (_todayIncidents.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="4" class="text-muted">Сегодня ДТП не зарегистрированы.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var i in _todayIncidents)
+                            {
+                                <tr>
+                                    <td>@i.IncidentDate.ToString("dd.MM.yyyy")</td>
+                                    <td class="text-truncate" style="max-width: 200px;">@i.Location</td>
+                                    <td class="text-truncate" style="max-width: 320px;">@i.Description</td>
+                                    <td>@FormatMoney(i.RepairCost ?? 0)</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 
 @code {
     private bool _loading = true;
     private string? _error;
+    private bool _loadingToday = true;
+    private string? _errorToday;
 
     private readonly List<ViewIncidents> _nearIncidents = new();
+    private readonly List<Incident> _todayIncidents = new();
 
     private int _todayCount;
     private int _rangeCount;
@@ -112,6 +171,9 @@
         _loading = true;
         _error = null;
         _nearIncidents.Clear();
+        _loadingToday = true;
+        _errorToday = null;
+        _todayIncidents.Clear();
 
         var dateTo = DateOnly.FromDateTime(DateTime.Today);
         var dateFrom = dateTo.AddDays(-7);
@@ -120,34 +182,53 @@
         {
             var client = HttpClientFactory.CreateClient("BlazorClient");
 
-            var url = $"https://localhost:7011/api/Incidents/IncidentsByDate?dateFrom={dateFrom:yyyy-MM-dd}&dateTo={dateTo:yyyy-MM-dd}";
-            var req = new HttpRequestMessage(HttpMethod.Get, url);
-
             var sessionId = await Key.GetSessionId();
-            if (!string.IsNullOrWhiteSpace(sessionId))
-                req.Headers.Add("X-Session-Id", sessionId);
 
-            var resp = await client.SendAsync(req);
-            if (!resp.IsSuccessStatusCode)
+            // 1) Инциденты за последние 7 дней (view)
+            var urlRange = $"https://localhost:7011/api/Incidents/IncidentsByDate?dateFrom={dateFrom:yyyy-MM-dd}&dateTo={dateTo:yyyy-MM-dd}";
+            var reqRange = new HttpRequestMessage(HttpMethod.Get, urlRange);
+            if (!string.IsNullOrWhiteSpace(sessionId))
+                reqRange.Headers.Add("X-Session-Id", sessionId);
+
+            var respRange = await client.SendAsync(reqRange);
+            if (!respRange.IsSuccessStatusCode)
             {
-                _error = $"Ошибка API: {(int)resp.StatusCode} {resp.ReasonPhrase}";
-                return;
+                _error = $"Ошибка API (IncidentsByDate): {(int)respRange.StatusCode} {respRange.ReasonPhrase}";
+            }
+            else
+            {
+                var resultRange = await respRange.Content.ReadFromJsonAsync<List<ViewIncidents>>(
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (resultRange is not null)
+                {
+                    _nearIncidents.AddRange(resultRange.OrderByDescending(x => x.incident_date).Take(20));
+                    _rangeCount = resultRange.Count;
+                    _todayCount = resultRange.Count(x => x.incident_date == dateTo);
+                    var sum = resultRange.Sum(x => x.repair_cost);
+                    _totalRepairCost = FormatMoney(sum);
+                }
             }
 
-            var result = await resp.Content.ReadFromJsonAsync<List<ViewIncidents>>(
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            // 2) Инциденты за сегодня (по IncidentDate)
+            var urlToday = $"https://localhost:7011/api/Incidents/by-date?date={dateTo:yyyy-MM-dd}";
+            var reqToday = new HttpRequestMessage(HttpMethod.Get, urlToday);
+            if (!string.IsNullOrWhiteSpace(sessionId))
+                reqToday.Headers.Add("X-Session-Id", sessionId);
 
-            if (result is null)
-                return;
+            var respToday = await client.SendAsync(reqToday);
+            if (!respToday.IsSuccessStatusCode)
+            {
+                _errorToday = $"Ошибка API (by-date): {(int)respToday.StatusCode} {respToday.ReasonPhrase}";
+            }
+            else
+            {
+                var resultToday = await respToday.Content.ReadFromJsonAsync<List<Incident>>(
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-            // newest first (best effort)
-            _nearIncidents.AddRange(result.OrderByDescending(x => x.incident_date).Take(20));
-
-            _rangeCount = result.Count;
-            _todayCount = result.Count(x => x.incident_date == dateTo);
-
-            var sum = result.Sum(x => x.repair_cost);
-            _totalRepairCost = FormatMoney(sum);
+                if (resultToday is not null)
+                    _todayIncidents.AddRange(resultToday.OrderByDescending(x => x.Timestamp));
+            }
         }
         catch (Exception ex)
         {
@@ -156,7 +237,13 @@
         finally
         {
             _loading = false;
+            _loadingToday = false;
         }
+    }
+
+    private void GoToIncident()
+    {
+        nav.NavigateTo("/incidents");
     }
 
     private static string FormatMoney(decimal value)

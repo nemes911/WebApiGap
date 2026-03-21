@@ -29,7 +29,7 @@ namespace API_GAI.Controllers
             return Ok(await _Repo.AddAsync(incident));
         }
 
-        [HttpGet("AllIncidents")]
+        [HttpGet("AllIncidents")]//вот запрос сюда 
         public async Task<IActionResult> GetAllAsync() 
         {
             return Ok(await _Repo.GetAllAsync());
