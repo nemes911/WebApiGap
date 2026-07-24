@@ -1,6 +1,7 @@
 ﻿using API_GAI.DbServices.DefaultCommand.Interface;
 using API_GAI.DbServices.SRC.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 using WebApiGap.DbServices.PostgresFactory;
 
 namespace API_GAI.DbServices.DefaultCommand.Implements
@@ -23,9 +24,18 @@ namespace API_GAI.DbServices.DefaultCommand.Implements
             return t;
         }
 
-        public async Task<List<Tentity>> GetAllAsync()
+        public async Task<List<Tentity>> GetAllAsync(params Expression<Func<Tentity, object>>[] includes)
         {
-            return await _dbSet.ToListAsync();
+            IQueryable<Tentity> query = _dbSet;
+
+            if (includes != null)
+            {
+                foreach(var include in includes)
+                {
+                    query = query.Include(include);
+                }
+            }
+            return await query.ToListAsync();
         }
 
         public async Task<Tentity> UpdateAsync(Tentity t)

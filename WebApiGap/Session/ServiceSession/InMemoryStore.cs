@@ -1,37 +1,54 @@
 ﻿using Microsoft.AspNetCore.Session;
 using System.Collections.Concurrent;
+using WebApiGap.Log.ServiceLog;
 using WebApiGap.Session.Service;
 
 namespace WebApiGap.Session.ServiceSession
 {
     public class InMemoryStore : ISessionStorenterface
     {
-        private readonly ConcurrentDictionary<string, (string user, string pass)> _sessions =
-            new ConcurrentDictionary<string, (string user, string pass)>();
+        private readonly ConcurrentDictionary<string, Session> _sessions = new();
+
+        public void ChangeSession(string sessionId)
+        {
+            throw new NotImplementedException();
+        }
 
         public string Create(string username, string password)
         {
+            throw new NotImplementedException();
+        }
+
+        public string Create_(string username, string password, string role)
+        {
             string id = Guid.NewGuid().ToString();
-            _sessions.TryAdd(id, (user: username, pass: password));
+
+            var newSession = new Session(id, username, password, role, DateTime.UtcNow);
+
+            _sessions.TryAdd(id, newSession);
+
+            var log = new ServiceLog(id, username, DateTime.UtcNow, "Login", "Success");
+
+            _ = ServiceLog.CreateLogAsync(log);
 
             return id;
         }
-        public string GetUser(string sessionId)
-        {
-            //return _sessions.TryGetValue(sessionId, out var session) && session.IsAuthenticated
-            // ? session.name
-            // : null;
 
-            return _sessions.TryGetValue(sessionId, out var session) ? session.user : null;
+        public string GetPassword(string password)
+        {
+            throw new NotImplementedException();
         }
 
-        public string GetPassword(string sessionId)
+        public Session? GetSession(string sessionId)
         {
-            //return _sessions.TryGetValue(sessionId, out var session) && session.IsAuthenticated
-            // ? session.password
-            // : null;
+            _sessions.TryGetValue(sessionId, out var session);
 
-            return _sessions.TryGetValue(sessionId, out var session) ? session.pass : null;
+            return session;
+        }
+
+        public string GetUser(string sessionId)
+        {
+            throw new NotImplementedException();
         }
 
         public void Remove(string session_id) => _sessions.TryRemove(session_id, out _);

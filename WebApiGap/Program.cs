@@ -5,6 +5,8 @@ using API_GAI.DbServices.DefaultCommand.Interface;
 using API_GAI.DbServices.SRC.Data.Auth;
 using API_GAI.DbServices.SRC.Models;
 using API_GAI.Settings;
+using System.Security.Cryptography.Xml;
+using System.Text.Json.Serialization;
 using WebApiGap.DbServices.DefaultCommand.Implements;
 using WebApiGap.DbServices.DefaultCommand.Interface;
 using WebApiGap.DbServices.PostgresFactory;
@@ -35,12 +37,17 @@ builder.Services.AddSingleton<Authzorization>();
 builder.Services.AddSingleton<ISessionStorenterface, InMemoryStore>();
 
 
-
 /* builder.Services.AddSingleton<Session>(); раскоментить и доделать сессию  */
 
 
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+
+        options.JsonSerializerOptions.WriteIndented = true;
+    });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -74,7 +81,21 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:63992", "http://localhost:5173")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
+
 var app = builder.Build();
+
+
+app.UseCors("AllowReactApp");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -92,21 +113,19 @@ app.Use(async (context, next) =>
 
     if(context.Request.Headers.TryGetValue("X-Session-Id", out var id))
     {
-        var username = store.GetUser(id);
+        var currentsession = store.GetSession(id);
 
-        var passwword = store.GetPassword(id);
-
-        if (!string.IsNullOrEmpty(username) && (!string.IsNullOrEmpty(passwword)))
+        if(currentsession != null && currentsession.IsAuthenticated)
         {
-            user.name = username;
-            user.password = passwword;
+            user.name = currentsession.name;
+            user.password = currentsession.password;
         }
     }
 
     await next();
 });
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection(); - раскоментить сертификат
 
 app.UseAuthorization();
 

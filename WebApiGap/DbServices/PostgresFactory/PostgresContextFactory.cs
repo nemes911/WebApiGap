@@ -25,7 +25,7 @@ namespace WebApiGap.DbServices.PostgresFactory
         {
             if(string.IsNullOrEmpty(_user.name) || string.IsNullOrEmpty(_user.password))
             {
-                throw new UnauthorizedAccessException("user is not succses");
+                    throw new UnauthorizedAccessException("user is not succses");
             }
 
             var connString =

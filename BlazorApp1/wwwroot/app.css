@@ -78,13 +78,23 @@ body {
     display: flex;
 }
 
-.search-box {
-    background: white;
+.sidebar {
+    width: 25%;
+    min-width: 15%;
+    max-width: 400px;
     padding: 15px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    width: 400px;
-    flex-shrink: 0;
+    border-right: 1px solid #ddd;
+    background-color: #f8f9fa;
+}
+
+.page-body{
+    width:75%;
+    padding: 15px;
+}
+
+.page-container{
+    display:flex;
+    height:100%;
 }
 
 .results-box {

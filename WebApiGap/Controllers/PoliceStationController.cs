@@ -25,7 +25,7 @@ namespace WebApiGap.Controllers
             return Ok(await  _Repo.UpdateAsync(policeStation));
         }
 
-        [HttpGet]
+        [HttpGet("get-all-policestation")]
         public async Task<IActionResult> GetAllAsync()
         {
             return Ok(await _Repo.GetAllAsync());

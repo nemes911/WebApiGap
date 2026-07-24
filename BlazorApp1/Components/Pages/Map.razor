@@ -7,10 +7,26 @@
 
 @if (string.IsNullOrEmpty(user))
 {
+    
+
+
     <p>Загрузка...</p>
 }
 else
 {
+    <div class="page-container">
+        <div class="sidebar">
+            <h6>Фильтры</h6>
+            <div class="from-check">
+                <input class="form-check-input" type="checkbox">
+            <label class="form-check-label">
+                    Options1 
+                </label>
+            </div>
+        </div>
+    </div>
+
+
     <p>Пользователь: @user</p>
 }
 

@@ -10,9 +10,9 @@ namespace API_GAI.Controllers
     [ApiController]
     public class IncidentsController : ControllerBase
     {
-        private readonly DefaultDb<Incident> _Repo;
+        private readonly IDefaultDB<Incident> _Repo;
 
-        public IncidentsController(DefaultDb<Incident> repo)
+        public IncidentsController(IDefaultDB<Incident> repo)
         {
             _Repo = repo;
         }
@@ -21,18 +21,33 @@ namespace API_GAI.Controllers
         public async Task<IActionResult> AddAsync([FromBody] Incident incident) 
         {
             if(!ModelState.IsValid) return BadRequest(ModelState);
+
+            incident.PoliceStation = null;
+            incident.IncidentClass = null;
+            incident.IncidentVehicles = new List<IncidentVehicle>();
+
             return Ok(await _Repo.AddAsync(incident));
         }
 
         [HttpGet("AllIncidents")]
         public async Task<IActionResult> GetAllAsync() 
         {
-            return Ok(await _Repo.GetAllAsync());
+            var incidents = await _Repo.GetAllAsync(
+                i => i.IncidentClass,
+                i => i.PoliceStation
+                );
+
+            return Ok(incidents);
         }
        
-        [HttpPut("UpdateIncide")]
+        [HttpPut("UpdateIncident")]
         public async Task<IActionResult> UpdateAsync(Incident incident) 
         {
+
+            incident.PoliceStation = null!;
+            incident.IncidentClass = null!;
+            incident.IncidentVehicles = new List<IncidentVehicle>();
+
             if (!ModelState.IsValid) return BadRequest(ModelState);
             return Ok(await _Repo.UpdateAsync(incident));
         }

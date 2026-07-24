@@ -13,7 +13,7 @@ public partial class PoliceStation
 
     public string Phone { get; set; } = null!;
 
-    public virtual District District { get; set; } = null!;
+    public virtual District? District { get; set; }
 
     public virtual ICollection<Incident> Incidents { get; set; } = new List<Incident>();
 }

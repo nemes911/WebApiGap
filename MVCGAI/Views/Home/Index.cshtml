@@ -1,0 +1,50 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h4 class="mb-0">Вход в систему ГАИ</h4>
+                </div>
+                <div class="card-body p-4">
+                    @if (!string.IsNullOrEmpty(ViewBag.Error))
+                    {
+                        <div class="alert alert-danger">@ViewBag.Error</div>
+                    }
+                    <form asp-action="Login" method="post" asp-antiforgery="true">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Логин</label>
+                            <input type="text"
+                                    name="Name"
+                                    class="form-control"
+                                    placeholder="Введите логин"
+                                    required
+                                    autofocus />
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Пароль</label>
+                            <input type="password"
+                                    name="Password"
+                                    class="form-control"
+                                    placeholder="Введите пароль"
+                                    required />
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2">
+                            Войти
+                        </button>
+                    </form>
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            Логин: <b>adminstation_Ivanov_Ivan_Ivanych</b><br>
+                            Пароль: <b>kOsatJ^JmE$vZD&P</b>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

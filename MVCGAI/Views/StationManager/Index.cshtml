@@ -1,0 +1,230 @@
+﻿@{
+    ViewData["Title"] = "Панель менеджера";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Panel-->
+        <div class="col-12 bg-dark text-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>Панель управления полицейским участком</h3>
+                <div>
+                    <span class="me-3">Пользователь: <b>@ViewBag.Username</b></span>
+                    <a asp-controller="StationManager" asp-action="Logout" class="btn btn-danger btn-sm">Выйти</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <h4>Реестр инцидентов</h4>
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger" style="white-space: pre-line; font-family: monospace; font-size: 0.9rem;">
+                    @ViewBag.Error
+                </div>
+            }
+
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Дата</th>
+                        <th>Описание</th>
+                        <th>Локация</th>
+                        <th>Ущерб</th>
+                        <th>Действие</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ViewBag.Incidents != null)
+                    {
+                        foreach (var incident in ViewBag.Incidents)
+                        {
+                            <tr>
+                                <td>@incident.IncidentDate?.ToString("dd.MM.yyyy")</td>
+                                <td>@incident.Description</td>
+                                <td>@incident.Location</td>
+                                <td>@incident.RepairCost?.ToString("N0")</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary edit-btn"
+                                            data-id="@incident.Id"
+                                            data-date="@incident.IncidentDate?.ToString("yyyy-MM-dd")"
+                                            data-desc="@incident.Description"
+                                            data-loc="@incident.Location"
+                                            data-cost="@incident.RepairCost">
+                                        Изменить
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="5" class="text-center">Нет данных</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО ДЛЯ РЕДАКТИРОВАНИЯ -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-controller="StationManager" asp-action="EditIncident" method="post">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Редактировать инцидент</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit-id" name="Id" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Дата инцидента</label>
+                        <input type="date" class="form-control" id="edit-date" name="IncidentDate" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Описание</label>
+                        <textarea class="form-control" id="edit-desc" name="Description" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Локация</label>
+                        <input type="text" class="form-control" id="edit-loc" name="Location" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Стоимость ущерба</label>
+                        <input type="number" class="form-control" id="edit-cost" name="RepairCost" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-success">Сохранить изменения</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<button type="button" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addIncidentModal">
+    ➕ Добавить инцидент
+</button>
+
+<!-- МОДАЛЬНОЕ ОКНО ДЛЯ ДОБАВЛЕНИЯ ИНЦИДЕНТА -->
+<div class="modal fade" id="addIncidentModal" tabindex="-1" aria-labelledby="addIncidentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addIncidentModalLabel">Новый инцидент</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="CreateIncident" method="post">
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Дата инцидента</label>
+                            <input type="date" name="IncidentDate" class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Стоимость ремонта</label>
+                            <input type="number" step="0.01" name="RepairCost" class="form-control" placeholder="0.00" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Место происшествия</label>
+                        <input type="text" name="Location" class="form-control" required placeholder="ул. Ленина, д. 10" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Описание происшествия</label>
+                        <textarea name="Description" class="form-control" rows="3" required placeholder="Опишите детали инцидента..."></textarea>
+                    </div>
+
+                    <!-- Скрытое поле для ID классификации -->
+                    <input type="hidden" id="IncidentClassId" name="IncidentClassId" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Классификация инцидента</label>
+                        <select id="classificationSelect" name="IncidentClassificationId" class="form-select" required>
+                            <option value="">-- Выберите классификацию инцидента --</option>
+                            @if (ViewBag.IncidentClassification != null)
+                            {
+                                foreach (var cls in (List<API_GAI.DbServices.SRC.Models.IncidentClassification>)ViewBag.IncidentClassification)
+                                {
+                                    <option value="@cls.Id">
+                                        @cls.ClassificationName
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Полицейский участок ответственный за инцидент</label>
+                        <select name="PoliceStationId" class="form-select" required>
+                            <option value="">-- Выберите полицейский участок --</option>
+                            @if (ViewBag.PoliceStations != null)
+                            {
+                                foreach (var station in (List<API_GAI.DbServices.SRC.Models.PoliceStation>)ViewBag.PoliceStations)
+                                {
+                                    <option value="@station.Id">
+                                        @station.Address (Район ID: @station.DistrictId)
+                                    </option>
+                                }
+                            }
+                        </select>
+                        <div class="form-text text-muted">
+                            Район подгружается автоматически на основе выбранного участка.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Сохранить инцидент</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- СКРИПТЫ -->
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // 1. Привязка выбора селекта классификации к скрытому полю
+            const classSelect = document.getElementById('classificationSelect');
+            const hiddenClassInput = document.getElementById('IncidentClassId');
+
+            if (classSelect && hiddenClassInput) {
+                classSelect.addEventListener('change', function () {
+                    hiddenClassInput.value = this.value;
+                });
+            }
+
+            // 2. Обработка модального окна редактирования
+            const editButtons = document.querySelectorAll('.edit-btn');
+            const modalElement = document.getElementById('editModal');
+            const editModal = new bootstrap.Modal(modalElement);
+
+            editButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const id = this.getAttribute('data-id');
+                    const date = this.getAttribute('data-date');
+                    const desc = this.getAttribute('data-desc');
+                    const loc = this.getAttribute('data-loc');
+                    const cost = this.getAttribute('data-cost');
+
+                    document.getElementById('edit-id').value = id;
+                    document.getElementById('edit-date').value = date;
+                    document.getElementById('edit-desc').value = desc;
+                    document.getElementById('edit-loc').value = loc;
+                    document.getElementById('edit-cost').value = cost;
+
+                    editModal.show();
+                });
+            });
+        });
+    </script>
+}

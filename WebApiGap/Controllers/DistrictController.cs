@@ -33,7 +33,7 @@ namespace WebApiGap.Controllers
             return Ok(await _Repo.UpdateAsync(district));
         }
 
-        [HttpGet]
+        [HttpGet("get-all-district")]
         public async Task<IActionResult> GetAllAsync()
         {
             return Ok(await _Repo.GetAllAsync());
