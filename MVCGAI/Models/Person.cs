@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MVCGAI.Models;
+using System;
 using System.Collections.Generic;
 
 namespace API_GAI.DbServices.SRC.Models;
@@ -21,7 +22,11 @@ public partial class Person
 
     public string? CarBrand { get; set; }
 
+    public Guid Id_prav { get; set; }
+
     public virtual SocialStatus SocialStatus { get; set; } = null!;
+
+    public virtual Prava Prava { get; set; } = null;
 
     public virtual ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
 }

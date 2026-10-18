@@ -3,6 +3,17 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<a asp-controller="StationManager"
+    asp-action="PravaAndHumans"
+    class="btn btn-primary">
+    Права и водятелы
+</a>
+
+
+
+
+
+
 <div class="container-fluid">
     <div class="row">
         <!-- Panel-->
@@ -48,13 +59,17 @@
                                 <td>@incident.Description</td>
                                 <td>@incident.Location</td>
                                 <td>@incident.RepairCost?.ToString("N0")</td>
+                                <td>@incident.IncidentClass.ClassificationName</td>
+                                <td>@incident.PoliceStation.Address</td>
                                 <td>
                                     <button class="btn btn-sm btn-primary edit-btn"
                                             data-id="@incident.Id"
                                             data-date="@incident.IncidentDate?.ToString("yyyy-MM-dd")"
                                             data-desc="@incident.Description"
                                             data-loc="@incident.Location"
-                                            data-cost="@incident.RepairCost">
+                                            data-cost="@incident.RepairCost"
+                                            data-incls="@incident.IncidentClass.ClassificationName"
+                                            data-pol="@incident.PoliceStation.Address">
                                         Изменить
                                     </button>
                                 </td>
@@ -98,6 +113,44 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold">Стоимость ущерба</label>
                         <input type="number" class="form-control" id="edit-cost" name="RepairCost" required />
+                    </div>
+                    <input type="hidden" id="IncidentClassId" name="IncidentClassId" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Классификация инцидента</label>
+                        <select id="classificationSelect" name="IncidentClassificationId" class="form-select" required>
+                            <option value="">-- Выберите классификацию инцидента --</option>
+                            @if (ViewBag.IncidentClassification != null)
+                            {
+                                foreach (var cls in (List<API_GAI.DbServices.SRC.Models.IncidentClassification>)ViewBag.IncidentClassification)
+                                {
+                                    <option value="@cls.Id">
+                                        @cls.ClassificationName
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Полицейский участок ответственный за инцидент</label>
+                        <select name="PoliceStationId" class="form-select" required>
+                            <option value="">-- Выберите полицейский участок --</option>
+                            @if (ViewBag.PoliceStations != null)
+                            {
+                                foreach (var station in (List<API_GAI.DbServices.SRC.Models.PoliceStation>)ViewBag.PoliceStations)
+                                {
+                                    <option value="@station.Id">
+                                        @station.Address (Район ID: @station.DistrictId)
+                                    </option>
+                                }
+                            }
+                        </select>
+
+                        <div class="form-text text-muted">
+                            Район подгружается автоматически на основе выбранного участка.
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -161,6 +214,7 @@
                         </select>
                     </div>
 
+
                     <div class="mb-3">
                         <label class="form-label fw-bold">Полицейский участок ответственный за инцидент</label>
                         <select name="PoliceStationId" class="form-select" required>
@@ -175,10 +229,12 @@
                                 }
                             }
                         </select>
+                        
                         <div class="form-text text-muted">
                             Район подгружается автоматически на основе выбранного участка.
                         </div>
                     </div>
+                    
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
@@ -194,7 +250,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             // 1. Привязка выбора селекта классификации к скрытому полю
-            const classSelect = document.getElementById('classificationSelect');
+            const classSelect = document.getElementById('classificationSelect'); 
             const hiddenClassInput = document.getElementById('IncidentClassId');
 
             if (classSelect && hiddenClassInput) {

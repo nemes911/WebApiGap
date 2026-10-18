@@ -21,6 +21,8 @@ namespace WebApiGap.DbServices.PostgresFactory
            
         }
 
+        
+
         public PostgresContext Create()
         {
             if(string.IsNullOrEmpty(_user.name) || string.IsNullOrEmpty(_user.password))
@@ -31,8 +33,11 @@ namespace WebApiGap.DbServices.PostgresFactory
             var connString =
                 $"{_settings.PostgresBase};Username={_user.name};Password={_user.password}";
 
+
             var options = new DbContextOptionsBuilder<PostgresContext>()
-                .UseNpgsql(connString)
+                .UseNpgsql(connString, options => options.EnableRetryOnFailure())
+                .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
+                
                 .Options;
 
             return new PostgresContext(options);

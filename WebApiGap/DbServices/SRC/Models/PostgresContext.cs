@@ -1,9 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using WebApiGap.DbServices.SRC.DTOModels;
+using WebApiGap.DbServices.SRC.Models;
 using WebApiGap.Session.ServiceSession;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.Reflection.Emit;
 
 namespace API_GAI.DbServices.SRC.Models;
+
+internal class GuidToNullConverter : ValueConverter<Guid?, Guid?>
+{
+    public GuidToNullConverter(ConverterMappingHints? mappingHints = null) 
+        : base (x => x == Guid.Empty ? default : x, x => x, mappingHints)
+    {
+
+    }
+}
+
 
 public partial class PostgresContext : DbContext
 {
@@ -30,6 +44,10 @@ public partial class PostgresContext : DbContext
 
     public virtual DbSet<Person> People { get; set; }
 
+    public virtual DbSet<Prava> Prava { get; set; }
+
+    public virtual DbSet<HumansVies> HumansVies { get; set; }
+
     public virtual DbSet<PoliceDepartment> PoliceDepartments { get; set; }
 
     public virtual DbSet<PoliceStation> PoliceStations { get; set; }
@@ -42,12 +60,18 @@ public partial class PostgresContext : DbContext
 
     public virtual DbSet<Vehicle> Vehicles { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+   /*protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("Host=localhost;Database=postgres;Username=postgres;Password=1243;Port=5432;");
+        => optionsBuilder.UseNpgsql("Host=localhost;Database=postgres;Username=postgres;Password=1243;Port=5432;");*/
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+       
+    
+
+
+
+
         modelBuilder.Entity<District>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("District_pkey");
@@ -98,6 +122,9 @@ public partial class PostgresContext : DbContext
                 .HasMaxLength(200)
                 .HasColumnName("classification_name");
         });
+
+
+
 
         modelBuilder.Entity<IncidentOfficer>(entity =>
         {
@@ -179,9 +206,6 @@ public partial class PostgresContext : DbContext
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
                 .HasColumnName("id");
-            entity.Property(e => e.CarBrand)
-                .HasMaxLength(255)
-                .HasColumnName("car_brand");
             entity.Property(e => e.FirstName)
                 .HasMaxLength(50)
                 .HasColumnName("first_name");
@@ -194,13 +218,42 @@ public partial class PostgresContext : DbContext
             entity.Property(e => e.PassportNumber).HasColumnName("passport_number");
             entity.Property(e => e.PassportSeries).HasColumnName("passport_series");
             entity.Property(e => e.SocialStatusId).HasColumnName("social_status_id");
+            entity.Property(e => e.id_prav).HasColumnName("id_prav")
+            .HasConversion(new GuidToNullConverter());
 
             entity.HasOne(d => d.SocialStatus).WithMany(p => p.People)
                 .HasForeignKey(d => d.SocialStatusId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("People_social_status_id_fkey");
+            entity.HasOne(p => p.Prava)
+            .WithMany(p => p.People)
+            .HasForeignKey(p => p.id_prav)
+            .OnDelete(DeleteBehavior.SetNull)
+            
+            .HasConstraintName("people_prava_fk");
+
         });
 
+        modelBuilder.Entity<HumansVies>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("people_and_human");
+        });
+        modelBuilder.Entity<Prava>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("Prava_key");
+            entity.ToTable("prava", "gai");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Date).HasColumnName("date");
+            entity.Property(e => e.Series).HasColumnName("series");
+            entity.Property(e => e.Number).HasColumnName("number");
+            entity.Property(e => e.Date_end).HasColumnName("date_end");
+            entity.Property(e => e.Kod_podrazdeleniya).HasColumnName("kod_podrazdeleniya");
+            entity.Property(e => e.Type).HasColumnName("type");
+            entity.Property(e => e.Status).HasColumnName("status");
+
+        });
         modelBuilder.Entity<PoliceDepartment>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("Police_Department_pkey");

@@ -10,6 +10,7 @@ using System.Text.Json.Serialization;
 using WebApiGap.DbServices.DefaultCommand.Implements;
 using WebApiGap.DbServices.DefaultCommand.Interface;
 using WebApiGap.DbServices.PostgresFactory;
+using WebApiGap.DbServices.SRC.Queries;
 using WebApiGap.Session.Service;
 using WebApiGap.Session.ServiceSession;
 
@@ -26,6 +27,8 @@ builder.Services.AddReverseProxy()
 
 builder.Services.AddScoped<PostgresContextFactory>();
 
+builder.Services.AddScoped<QueryList>();
+
 builder.Services.AddScoped<IUser, User>();
 
 builder.Services.Configure<AppiSettings>(builder.Configuration.GetSection("AppiSettings"));
@@ -36,6 +39,7 @@ builder.Services.AddSingleton<Authzorization>();
 
 builder.Services.AddSingleton<ISessionStorenterface, InMemoryStore>();
 
+builder.Services.AddScoped(typeof(ICurrentSession), typeof(CurrentSession));
 
 /* builder.Services.AddSingleton<Session>(); раскоментить и доделать сессию  */
 
@@ -111,14 +115,24 @@ app.Use(async (context, next) =>
 
     var user = context.RequestServices.GetRequiredService<IUser>();
 
+    var currentsessionService = context.RequestServices.GetRequiredService<ICurrentSession>();
+
     if(context.Request.Headers.TryGetValue("X-Session-Id", out var id))
     {
         var currentsession = store.GetSession(id);
+
 
         if(currentsession != null && currentsession.IsAuthenticated)
         {
             user.name = currentsession.name;
             user.password = currentsession.password;
+
+            if (currentsession != null)
+            {
+                currentsessionService.Session = currentsession;
+                currentsessionService.SessionId = id;
+                currentsessionService.IsAuthentificated = true;
+            }
         }
     }
 

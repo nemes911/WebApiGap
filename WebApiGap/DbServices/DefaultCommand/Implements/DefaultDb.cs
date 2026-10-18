@@ -17,8 +17,42 @@ namespace API_GAI.DbServices.DefaultCommand.Implements
             _postgresContext = factory.Create();
             _dbSet = _postgresContext.Set<Tentity>();
         }
+
+
+
         public async Task<Tentity> AddAsync(Tentity t)
         {
+            var entityType = _postgresContext.Model.FindEntityType(typeof(Tentity));
+            var keyProperty = entityType?
+                .FindPrimaryKey()?
+                .Properties
+                .FirstOrDefault();
+
+            if (keyProperty != null)
+            {
+                var clrType = keyProperty.ClrType;
+                // Поддерживаем и Guid, и Guid?
+                var isGuid = clrType == typeof(Guid) || clrType == typeof(Guid?);
+
+                if (isGuid)
+                {
+                    var prop = typeof(Tentity).GetProperty(keyProperty.Name);
+                    if (prop != null)
+                    {
+                        var current = prop.GetValue(t);
+
+                        bool needGenerate =
+                            current == null ||
+                            (current is Guid g && g == Guid.Empty);
+
+                        if (needGenerate)
+                        {
+                            prop.SetValue(t, Guid.NewGuid());
+                        }
+                    }
+                }
+            }
+
             await _dbSet.AddAsync(t);
             await _postgresContext.SaveChangesAsync();
             return t;

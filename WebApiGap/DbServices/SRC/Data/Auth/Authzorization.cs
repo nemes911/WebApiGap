@@ -29,35 +29,47 @@ namespace API_GAI.DbServices.SRC.Data.Auth
         //вход 
         public async Task<string?> AuthAsync(string name, string password)
         {
-            var _connection = _connection_string + "Username=" + name + ";Password=" + password + ";";
-
-            Console.WriteLine(_connection);
-
-            await using (var connection = new NpgsqlConnection(_connection))
+            try
             {
-                     await connection.OpenAsync();
 
+                var _connection = _connection_string + "Username=" + name + ";Password=" + password + ";";
 
-                const string sql = "SELECT authenticated, role_name FROM gai.check_user(@p_username, @p_password)";
+                Console.WriteLine(_connection);
 
-                await using var cmd = new NpgsqlCommand(sql, connection);
-                cmd.Parameters.AddWithValue("p_username", name);
-                cmd.Parameters.AddWithValue("p_password", password);
-
-                await using var reader = await cmd.ExecuteReaderAsync();
-
-                if (await reader.ReadAsync())
+                await using (var connection = new NpgsqlConnection(_connection))
                 {
-                    bool authenticated = reader.GetBoolean(0);
-                    string? roleName = reader.IsDBNull(1) ? null : reader.GetString(1);
+                    await connection.OpenAsync();
 
-                    if (authenticated && roleName != null)
+
+                    const string sql = "SELECT authenticated, role_name FROM gai.check_user(@p_username, @p_password)";
+
+                    await using var cmd = new NpgsqlCommand(sql, connection);
+                    cmd.Parameters.AddWithValue("p_username", name);
+                    cmd.Parameters.AddWithValue("p_password", password);
+
+                    await using var reader = await cmd.ExecuteReaderAsync();
+
+                    if (await reader.ReadAsync())
                     {
-                        return roleName;
+                        bool authenticated = reader.GetBoolean(0);
+                        string? roleName = reader.IsDBNull(1) ? null : reader.GetString(1);
+
+                        if (authenticated && roleName != null)
+                        {
+                            return roleName;
+                        }
                     }
                 }
+                return null;
             }
-            return null;  
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка авторизации: {ex.Message}");
+                throw;
+            }
+            
+            
         }
     }
 }
+

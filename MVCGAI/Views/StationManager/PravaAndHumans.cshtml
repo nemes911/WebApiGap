@@ -1,0 +1,1062 @@
+﻿@using MVCGAI.DTOModels
+
+@{
+    Layout = null;
+
+    var people = Model as List<HumansVies>
+                   ?? ViewBag.PeopleAndHuman as List<HumansVies>
+                   ?? new List<HumansVies>();
+}
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <!-- Bootstrap 5.0.1 -->
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.css" />
+
+    <title>@ViewData["Title"] = "Права и Водители";</title>
+
+
+    <style>
+
+        /* =========================================================
+                   ОБЩАЯ СТРАНИЦА
+                   ========================================================= */
+
+        .search-page {
+            max-width: 1400px;
+            margin: 30px auto;
+            font-family: Arial, sans-serif;
+        }
+
+
+        .page-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 25px;
+        }
+
+
+        /* =========================================================
+                   ПОИСК
+                   ========================================================= */
+
+        .search-card {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+
+            .form-group label {
+                font-weight: 600;
+                margin-bottom: 6px;
+            }
+
+
+            .form-group input {
+                height: 38px;
+                border: 1px solid #bbb;
+                border-radius: 6px;
+                padding: 0 10px;
+                font-size: 15px;
+                box-sizing: border-box;
+            }
+
+
+                .form-group input:focus {
+                    outline: none;
+                    border-color: #1976d2;
+                    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.12);
+                }
+
+
+        /* =========================================================
+                   КНОПКИ ПОИСКА
+                   ========================================================= */
+
+        .buttons {
+            margin-top: 25px;
+            display: flex;
+            gap: 12px;
+        }
+
+
+        .btn-search {
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 22px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+
+            .btn-search:hover {
+                background: #1565c0;
+            }
+
+
+        .btn-clear {
+            background: #e0e0e0;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 22px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+
+            .btn-clear:hover {
+                background: #d0d0d0;
+            }
+
+
+        .btn-add {
+            background: #198754;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 22px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+
+            .btn-add:hover {
+                background: #157347;
+            }
+
+
+        /* =========================================================
+                   РЕЗУЛЬТАТЫ
+                   ========================================================= */
+
+        .results {
+            margin-top: 30px;
+        }
+
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+
+            .results-header h2 {
+                margin: 0;
+            }
+
+
+        .result-count {
+            color: #666;
+            font-size: 14px;
+        }
+
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+
+        .results table {
+            width: 100%;
+            min-width: 1200px;
+            border-collapse: collapse;
+        }
+
+
+        .results th {
+            background: #f3f3f3;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+
+        .results th,
+        .results td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+
+        .results tbody tr:hover {
+            background-color: #f8f8f8;
+        }
+
+
+        /* =========================================================
+                   СТАТУС
+                   ========================================================= */
+
+        .status {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 13px;
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+
+        .active {
+            background: #d9f2dd;
+            color: #237a2c;
+        }
+
+
+        .blocked {
+            background: #ffdada;
+            color: #a32626;
+        }
+
+
+        .empty-result {
+            text-align: center;
+            padding: 30px;
+            color: #777;
+        }
+
+
+        /* =========================================================
+                   ФОРМЫ ДОБАВЛЕНИЯ
+
+                   Здесь находится основное изменение.
+
+                   display: flex;
+                   располагает две формы рядом.
+
+                   Левая форма = человек.
+                   Правая форма = права.
+                   ========================================================= */
+
+        .add-forms {
+            display: flex;
+            gap: 30px;
+            margin-top: 30px;
+            align-items: flex-start;
+        }
+
+
+        /* =========================================================
+                   ОТДЕЛЬНАЯ КАРТОЧКА ФОРМЫ
+                   ========================================================= */
+
+        .add-form {
+            flex: 1;
+            max-width: 600px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+
+        /* Заголовок формы */
+
+        .add-form-title {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+
+        /* =========================================================
+                   МОБИЛЬНАЯ ВЕРСИЯ
+
+                   Если экран становится маленьким,
+                   формы перестают стоять рядом и
+                   переходят одна под другую.
+                   ========================================================= */
+
+        @@media (max-width: 900px) {
+
+            .add-forms {
+                flex-direction: column;
+            }
+
+
+            .add-form {
+                max-width: none;
+                width: 100%;
+            }
+        }
+
+
+        /* =========================================================
+                   МОБИЛЬНАЯ ВЕРСИЯ ПОИСКА
+                   ========================================================= */
+
+        @@media (max-width: 700px) {
+
+            .search-page {
+                margin: 15px;
+            }
+
+
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <div class="search-page">
+
+
+        <!-- =========================================================
+             ЗАГОЛОВОК
+             ========================================================= -->
+
+        <div class="page-title">
+
+            Поиск водителей
+
+        </div>
+
+
+        <!-- =========================================================
+             ПОИСК
+             ========================================================= -->
+
+        <form asp-action="SearchPerson"
+              asp-controller="StationManager"
+              method="post">
+
+            <div class="search-card">
+
+
+                <div class="search-grid">
+
+
+                    <!-- Серия паспорта -->
+
+                    <div class="form-group">
+
+                        <label for="passportseries">
+                            Серия паспорта
+                        </label>
+
+                        <input type="number"
+                               id="passportseries"
+                               name="passportseries"
+                               placeholder="Введите серию паспорта" />
+
+                    </div>
+
+
+                    <!-- Номер паспорта -->
+
+                    <div class="form-group">
+
+                        <label for="passportnumber">
+                            Номер паспорта
+                        </label>
+
+                        <input type="number"
+                               id="passportnumber"
+                               name="passportnumber"
+                               placeholder="Введите номер паспорта" />
+
+                    </div>
+
+
+                    <!-- Серия прав -->
+
+                    <div class="form-group">
+
+                        <label for="pravaseries">
+                            Серия прав
+                        </label>
+
+                        <input type="text"
+                               id="pravaseries"
+                               name="pravaseries"
+                               placeholder="Введите серию прав" />
+
+                    </div>
+
+
+                    <!-- Номер прав -->
+
+                    <div class="form-group">
+
+                        <label for="pravanumber">
+                            Номер прав
+                        </label>
+
+                        <input type="number"
+                               id="pravanumber"
+                               name="pravanumber"
+                               placeholder="Введите номер прав" />
+
+                    </div>
+
+
+                    <!-- Код подразделения -->
+
+                    <div class="form-group">
+
+                        <label for="kodPodradeleniya">
+                            Код подразделения
+                        </label>
+
+                        <input type="text"
+                               id="kodPodradeleniya"
+                               name="kodPodradeleniya"
+                               placeholder="Введите код подразделения" />
+
+                    </div>
+
+
+                </div>
+
+
+                <!-- =====================================================
+                     КНОПКИ ПОИСКА
+                     ===================================================== -->
+
+                <div class="buttons">
+
+
+                    <button type="submit"
+                            class="btn-search">
+
+                        Поиск
+
+                    </button>
+
+
+                    <button type="button"
+                            class="btn-clear"
+                            id="clearSearch">
+
+                        Очистить
+
+                    </button>
+
+
+                    <!--
+                        Раньше эта кнопка открывала модальное окно.
+
+                        Теперь модалки нет, поэтому эта кнопка здесь
+                        больше не нужна.
+                    -->
+
+                </div>
+
+
+            </div>
+
+        </form>
+
+
+
+        <!-- =========================================================
+             РЕЗУЛЬТАТЫ
+             ========================================================= -->
+
+        <div class="results">
+
+
+            <div class="results-header">
+
+
+                <h2>
+                    Результаты
+                </h2>
+
+
+                <span class="result-count">
+
+                    Найдено: @people.Count
+
+                </span>
+
+
+            </div>
+
+
+
+            <div class="table-container">
+
+
+                <table>
+
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Имя</th>
+
+                            <th>Фамилия</th>
+
+                            <th>Отчество</th>
+
+                            <th>Серия паспорта</th>
+
+                            <th>Номер паспорта</th>
+
+                            <th>Социальный статус</th>
+
+                            <th>Дата прав</th>
+
+                            <th>Серия прав</th>
+
+                            <th>Номер прав</th>
+
+                            <th>Дата окончания</th>
+
+                            <th>Код подразделения</th>
+
+                            <th>Тип прав</th>
+
+                            <th>Действительность</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+
+                        @if (people.Any())
+                        {
+
+                            foreach (var result in people)
+                            {
+
+                                <tr>
+
+
+                                    <td>
+                                        @result.FirstName
+                                    </td>
+
+
+                                    <td>
+                                        @result.LastName
+                                    </td>
+
+
+                                    <td>
+                                        @result.MiddleName
+                                    </td>
+
+
+                                    <td>
+                                        @result.PassportSeries
+                                    </td>
+
+
+                                    <td>
+                                        @result.PassportNumber
+                                    </td>
+
+
+                                    <td>
+                                        @result.SocialStatusName
+                                    </td>
+
+
+                                    <td>
+                                        @(result.PravaDate?.ToString("dd.MM.yyyy") ?? "—")
+                                    </td>
+
+
+                                    <td>
+                                        @(result.PravaSeries ?? "—")
+                                    </td>
+
+
+                                    <td>
+                                        @(result.PravaNumber?.ToString() ?? "—")
+                                    </td>
+
+
+                                    <td>
+                                        @(result.PravaDateEnd?.ToString("dd.MM.yyyy") ?? "—")
+                                    </td>
+
+
+                                    <td>
+                                        @(result.KodPodrazdeleniya ?? "—")
+                                    </td>
+
+
+                                    <td>
+
+
+                                        @if (result.PravaType != null &&
+                                                                        result.PravaType.Length > 0)
+                                        {
+
+                                            @string.Join(", ", result.PravaType)
+
+                                        }
+                                        else
+                                        {
+
+                                            <span>—</span>
+
+                                        }
+
+
+                                    </td>
+
+
+                                    <td>
+
+
+                                        @if (result.PravaStatus == true)
+                                        {
+
+                                            <span class="status active">
+
+                                                Действительны
+
+                                            </span>
+
+                                        }
+                                        else if (result.PravaStatus == false)
+                                        {
+
+                                            <span class="status blocked">
+
+                                                Недействительны
+
+                                            </span>
+
+                                        }
+                                        else
+                                        {
+
+                                            <span>—</span>
+
+                                        }
+
+
+                                    </td>
+
+
+                                </tr>
+
+                            }
+
+                        }
+                        else
+                        {
+
+                            <tr>
+
+                                <td colspan="13"
+                                    class="empty-result">
+
+                                    По вашему запросу ничего не найдено
+
+                                </td>
+
+                            </tr>
+
+                        }
+
+
+                    </tbody>
+
+                </table>
+
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =========================================================
+             ФОРМЫ ДОБАВЛЕНИЯ
+
+             ВАЖНО:
+
+             Этот блок находится ПОСЛЕ таблицы.
+
+             Левая форма:
+             NewPerson
+
+             Правая форма:
+             CreatePrava
+             ========================================================= -->
+
+        <div class="add-forms">
+
+
+            <!-- =====================================================
+                 ЛЕВАЯ ФОРМА
+                 ДОБАВЛЕНИЕ ЧЕЛОВЕКА
+                 ===================================================== -->
+
+            <div class="add-form">
+
+
+                <div class="add-form-title">
+
+                    Добавление человека
+
+                </div>
+
+
+                <form asp-controller="StationManager"
+                      asp-action="NewPerson"
+                      method="post">
+
+
+                    <!-- Имя -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label fw-bold">
+                            Имя
+                        </label>
+
+                        <input type="text"
+                               name="FirstName"
+                               class="form-control"
+                               placeholder="Введите имя"
+                               required />
+
+                    </div>
+
+
+                    <!-- Фамилия -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label fw-bold">
+                            Фамилия
+                        </label>
+
+                        <input type="text"
+                               name="LastName"
+                               class="form-control"
+                               placeholder="Введите фамилию"
+                               required />
+
+                    </div>
+
+
+                    <!-- Отчество -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label fw-bold">
+                            Отчество
+                        </label>
+
+                        <input type="text"
+                               name="MiddleName"
+                               class="form-control"
+                               placeholder="Введите отчество"
+                               required />
+
+                    </div>
+
+
+                    <!-- Номер паспорта -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label fw-bold">
+                            Номер паспорта
+                        </label>
+
+                        <input type="number"
+                               name="PassportNumber"
+                               class="form-control"
+                               placeholder="Введите номер паспорта"
+                               required />
+
+                    </div>
+
+
+                    <!-- Серия паспорта -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label fw-bold">
+                            Серия паспорта
+                        </label>
+
+                        <input type="number"
+                               name="PassportSeries"
+                               class="form-control"
+                               placeholder="Введите серию паспорта"
+                               required />
+
+                    </div>
+
+
+                    <!-- Социальный статус -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label fw-bold">
+                            Социальный статус
+                        </label>
+
+                        <input type="number"
+                               name="SocialStatusId"
+                               class="form-control"
+                               placeholder="Введите социальный статус"
+                               required />
+
+                    </div>
+
+
+                    <!-- Права -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label fw-bold">
+                            Права
+                        </label>
+
+                        <input type="text"
+                               name="Prava"
+                               class="form-control"
+                               placeholder="Введите права" />
+
+                    </div>
+
+
+                    <!-- Кнопка -->
+
+                    <button type="submit"
+                            class="btn btn-primary w-100 py-2">
+
+                        Добавить человека
+
+                    </button>
+
+
+                </form>
+
+
+            </div>
+
+
+
+            <!-- =====================================================
+                 ПРАВАЯ ФОРМА
+                 ДОБАВЛЕНИЕ ПРАВ
+                 ===================================================== -->
+
+            <div class="add-form">
+
+
+                <div class="add-form-title">
+
+                    Добавление прав
+
+                </div>
+
+
+                <form asp-controller="StationManager"
+                      asp-action="CreatePrava"
+                      method="post">
+
+
+                    <!-- Дата выдачи -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label fw-bold">
+                            Дата выдачи
+                        </label>
+
+                        <input type="date"
+                               name="Date"
+                               class="form-control" />
+
+                    </div>
+
+
+                    <!-- Серия -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label fw-bold">
+                            Серия
+                        </label>
+
+                        <input type="number"
+                               name="Series"
+                               class="form-control"
+                               placeholder="Введите серию" />
+
+                    </div>
+
+
+                    <!-- Номер -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label fw-bold">
+                            Номер
+                        </label>
+
+                        <input type="number"
+                               name="Number"
+                               class="form-control"
+                               placeholder="Введите номер" />
+
+                    </div>
+
+
+                    <!-- Дата окончания -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label fw-bold">
+                            Дата окончания
+                        </label>
+
+                        <input type="date"
+                               name="Date_end"
+                               class="form-control" />
+
+                    </div>
+
+
+                    <!-- Код подразделения -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label fw-bold">
+                            Код подразделения
+                        </label>
+
+                        <input type="text"
+                               name="Kod_podrazdeleniya"
+                               class="form-control"
+                               placeholder="Введите код подразделения" />
+
+                    </div>
+
+
+                    <!-- Тип прав -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label fw-bold">
+                            Тип прав
+                        </label>
+
+                        <input type="text"
+                               name="Type"
+                               class="form-control"
+                               placeholder="Введите тип прав" />
+
+                    </div>
+
+
+                    <!-- Статус -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label fw-bold">
+                            Статус прав
+                        </label>
+
+
+                        <div class="form-check">
+
+
+                            <input type="checkbox"
+                                   name="Status"
+                                   class="form-check-input"
+                                   value="true"
+                                   id="statusPrava" />
+
+
+                            <label class="form-check-label"
+                                   for="statusPrava">
+
+                                Права действительны
+
+                            </label>
+
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Кнопка -->
+
+                    <button type="submit"
+                            class="btn btn-primary w-100 py-2">
+
+                        Добавить права
+
+                    </button>
+
+
+                </form>
+
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+    <!-- =========================================================
+         BOOTSTRAP JS
+         ========================================================= -->
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.js"></script>
+
+
+</body>
+
+</html>

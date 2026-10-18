@@ -3,6 +3,7 @@ using API_GAI.DbServices.DefaultCommand.Interface;
 using API_GAI.DbServices.SRC.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using WebApiGap.DbServices.SRC.Queries;
 
 namespace WebApiGap.Controllers
 {
@@ -12,9 +13,12 @@ namespace WebApiGap.Controllers
     {
         private readonly IDefaultDB<District> _Repo;
 
-        public DistrictController(IDefaultDB<District> Repo)
+        private readonly QueryList _queryList;
+
+        public DistrictController(IDefaultDB<District> Repo, QueryList queryList)
         {
             _Repo = Repo;
+            _queryList = queryList;
         }
 
         [HttpPost("set-district")]
@@ -37,6 +41,13 @@ namespace WebApiGap.Controllers
         public async Task<IActionResult> GetAllAsync()
         {
             return Ok(await _Repo.GetAllAsync());
+        }
+
+        [HttpGet("GetStatsByDistrict/{id}")]
+        public async Task<IActionResult> GetJoin( int id)
+        {
+            var result = await _queryList.JoinDistrictIncidents(id);
+            return Ok(result);
         }
     }
 }

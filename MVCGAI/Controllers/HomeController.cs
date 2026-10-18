@@ -61,8 +61,14 @@ namespace MVCGAI.Controllers
                         HttpContext.Session.SetString("role", role);
                         HttpContext.Session.SetString("UserName", model.Name);
                     }
-
-                    return RedirectToAction("Index", "StationManager");
+                    if (model.Name.StartsWith("adminstation"))
+                    {
+                        return RedirectToAction("Index", "StationManager");
+                    }
+                    else
+                    {
+                        return RedirectToAction("Index", "HeadStationManager");
+                    }
                 }
                 else
                 {

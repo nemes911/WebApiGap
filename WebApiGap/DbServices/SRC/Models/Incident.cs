@@ -5,7 +5,7 @@ namespace API_GAI.DbServices.SRC.Models;
 
 public partial class Incident
 {
-    public Guid Id { get; set; }
+    public Guid? Id { get; set; }
 
     public int? IncidentClassId { get; set; }
 

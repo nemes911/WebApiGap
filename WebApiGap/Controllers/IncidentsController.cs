@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using API_GAI.DbServices.DefaultCommand.Interface;
 using API_GAI.DbServices.DefaultCommand.Implements;
+using WebApiGap.DbServices.SRC.Queries;
 
 namespace API_GAI.Controllers
 {
@@ -12,16 +13,18 @@ namespace API_GAI.Controllers
     {
         private readonly IDefaultDB<Incident> _Repo;
 
-        public IncidentsController(IDefaultDB<Incident> repo)
+        private readonly QueryList _queryList;
+
+        public IncidentsController(IDefaultDB<Incident> repo, QueryList queryList)
         {
             _Repo = repo;
+            _queryList = queryList;
         }
 
         [HttpPost("SetIncident")]
-        public async Task<IActionResult> AddAsync([FromBody] Incident incident) 
+        public async Task<IActionResult> AddAsync([FromBody] Incident incident)
         {
-            if(!ModelState.IsValid) return BadRequest(ModelState);
-
+            incident.Id = null;
             incident.PoliceStation = null;
             incident.IncidentClass = null;
             incident.IncidentVehicles = new List<IncidentVehicle>();
@@ -30,7 +33,7 @@ namespace API_GAI.Controllers
         }
 
         [HttpGet("AllIncidents")]
-        public async Task<IActionResult> GetAllAsync() 
+        public async Task<IActionResult> GetAllAsync()
         {
             var incidents = await _Repo.GetAllAsync(
                 i => i.IncidentClass,
@@ -39,9 +42,9 @@ namespace API_GAI.Controllers
 
             return Ok(incidents);
         }
-       
+
         [HttpPut("UpdateIncident")]
-        public async Task<IActionResult> UpdateAsync(Incident incident) 
+        public async Task<IActionResult> UpdateAsync(Incident incident)
         {
 
             incident.PoliceStation = null!;
@@ -51,5 +54,12 @@ namespace API_GAI.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
             return Ok(await _Repo.UpdateAsync(incident));
         }
+        [HttpPost("GetStatByDate")]
+        public async Task<IActionResult> GetStatDate([FromBody]DateTime date_start, DateTime date_end)
+        {
+
+            return Ok(await _queryList.EquelseDTPPerMothAsync(date_start, date_end));
+        }
+
     }
 }
