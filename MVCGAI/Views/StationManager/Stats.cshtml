@@ -1,0 +1,87 @@
+﻿@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Страница статистики";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{
+    var data = ViewBag.DataStats as Dictionary<DateTime, Dictionary<int, double>>;
+}
+
+<div style="width: 100%; height: 500px;">
+    <canvas id="deltaChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const stats = @Html.Raw(JsonSerializer.Serialize(data));
+
+    const labels = [];
+    const percentages = [];
+    const counts = [];
+
+    for (const date in stats) {
+
+        const monthData = stats[date];
+
+        for (const count in monthData) {
+
+            labels.push(
+                new Date(date).toLocaleDateString('ru-RU', {
+                    month: '2-digit',
+                    year: 'numeric'
+                })
+            );
+
+            counts.push(Number(count));
+            percentages.push(Number(monthData[count]));
+        }
+    }
+
+    const ctx = document.getElementById('deltaChart');
+
+    new Chart(ctx, {
+        type: 'bar',
+
+        data: {
+            labels: labels,
+
+            datasets: [{
+                label: 'Процент относительно предыдущего месяца',
+                data: percentages
+            }]
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Процент'
+                    }
+                }
+            },
+
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const index = context.dataIndex;
+
+                            return [
+                                `Инцидентов: ${counts[index]}`,
+                                `Процент: ${percentages[index]}%`
+                            ];
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
